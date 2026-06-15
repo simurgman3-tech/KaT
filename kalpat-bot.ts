@@ -1,611 +1,61 @@
-ChatGPT
-
-
-
-
-Too big: expected string to have <=80000 characters bu uyarıyı veriyor önce ne yapacağımızı net öner veyaa aynı kodu eksiksiz val town A GÖMECEK SİSTEM VAR MI
-
-
-
-
-9:37
-
-
-
-
-
-
-Net önerim şu:
-Önce en basit ihtimali eleyelim
-Val Town’a yanlışlıkla eski uzun kodu ya da iki kodu üst üste yapıştırıyor olabilirsin. Bizim son dosya 68.815 karakterdi, normalde 80.000 sınırına takılmaması lazım.
-Yapman gereken:
-Val Town editörde Ctrl + A
-Tamamen sil
-Sadece [crushmatch_valtown.ts](/C:/Users/Yktsr/OneDrive/Belgeler/TELEGRAM DATE BOTU/crushmatch_valtown.ts) dosyasının içeriğini yapıştır
-
-Hâlâ Too big diyorsa en mantıklı çözüm
-Kodu Val Town’a komple gömmeyelim. Val Town içine sadece minicik bir loader koyarız. Asıl bot kodu dışarıda durur.
-Mantık şöyle olur:
-import handler from "https://raw.githubusercontent.com/.../kalpat.ts";
-export default handler;
-Val Town’da sadece bu 2 satır olur. Botun asıl kodu GitHub/Gist gibi bir yerde durur. Token yine Val Town env’de kalır, dışarıya token koymayız.
-
-Bence en sağlam yol
-Bu projede artık kod büyüdü. 2. paket ve admin panel de gelince tek dosya sınırı yine vuracak. O yüzden ben olsam artık şunu yapardım:
-Val Town: sadece webhook loader
-GitHub/Gist: asıl bot kodu
-Env değişkenleri: yine Val Town’da
-Güncelleme: kodu GitHub tarafında değiştiririz, Val Town’a tekrar dev kod yapıştırmayız
-
-Yani net kararım: Eğer bir kez daha doğru dosyayı yapıştırmana rağmen Too big verirse, Val Town’a gömme sisteminden çıkıp external import sistemine geçelim. Bu proje için daha doğru yol artık bu.
-
-9:37
-
-
-
-
-
-
-
-
-
-SENİN VERDİĞİN KODU YAPIŞTIRINCA BÖYLE BOŞLUKLARIN OLMASI NORMAL Mİ 4 KEZ DENEDİM HER SEFERİNDE BU ŞEKİLDE SENİN VERDİĞİN KOD
-
-
-
-9:39
-
-
-
-
-
-
-Evet, ekranda gördüğün “boşluklar” büyük ihtimalle normal: Kod sıkıştırılmış olduğu için satırların çoğu tek satıra bindi, ama SQL ve uzun mesaj metinleri template string içinde olduğu için Val Town editörü onları içeride boş satır gibi gösteriyor.
-Ama şu önemli: Bu boşluk görüntüsü tek başına sorun değil. Asıl sorun Too big hatası. Bizim dosya yerelde 68.815 karakterdi, yani normalde Val Town’a sığması gerekiyor.
-Ekrandaki görüntüden iki ihtimal çok güçlü:
-Kod tam başından yapışmamış olabilir
-Ekranda ilk satır update.callback_query... diye başlıyor gibi görünüyor. Normal kodun en başı şununla başlamalı:
-import{Hono}from"https://deno.land/x/hono@v4.3.11/mod.ts";
-Eğer dosyanın başında bu yoksa, kodun bir kısmı eksik/ortadan yapışmış demektir.
-
-Val Town hâlâ eski kodla beraber sayıyor olabilir
-Sen Ctrl + A yapıp tamamen silmeden yapıştırınca eski kod + yeni kod üst üste kalabiliyor. Bu durumda görüntüde az kod var gibi dursa bile Val iç state’i büyük sayabiliyor.
-
-Net önerim:
-Bu şekilde elle yapıştırma işini bırakmayalım.
-Ben sana Val Town’a yapıştırmalık ayrı ultra-kısa loader sistemini hazırlayayım.
-Asıl kodu başka yerde tutarız, Val Town’da sadece küçük loader kalır.
-Böylece Too big sorunu kalıcı olarak biter.
-Çünkü 1. paket bitti, 2. paket ve admin panel gelince tek dosya sınırı bizi yine boğacak. Artık en mantıklı çözüm: Val Town = küçük webhook loader, bot kodu = dış dosya/import.
-
-9:39
-
-
-
-
-
-
-PEKİ ÖNERİNİ YAPAR KODU DIŞARI BIRAKIRSAK SİSTEM HATA VERME YAVAŞLAMA DURUMU OLUR MU ? 
-
-
-
-
-9:41
-
-
-
-
-
-
-Kısa cevap: çok az risk var, ama doğru kurarsak ciddi yavaşlama olmaz. Hatta bu proje için uzun vadede daha sağlıklı olur.
-Dış kod sisteminde mantık şu olur:
-import handler from "DIŞ_KOD_URL";
-export default handler;
-Val Town sadece webhook’u karşılar, asıl bot kodunu dış dosyadan import eder.
-Artıları:
-Too big sorunu biter.
-Kod büyüse bile Val Town’a dev dosya yapıştırmayız.
-Güncelleme daha kolay olur.
-Admin panel gibi büyük özellikleri daha rahat ekleriz.
-Eksileri / riskleri:
-Dış URL erişilemezse bot çalışmaz.
-İlk çalışmada import biraz daha yavaş olabilir.
-Dış kodu koyduğumuz yer güvenilir olmalı.
-Kod URL’si herkese açık olursa bot mantığı görünür, ama token env’de kaldığı için token görünmez.
-En iyi çözüm:
-GitHub private repo yerine mümkünse public raw URL veya Val Town Blob/Gist tarzı sabit erişilebilir URL kullanılır.
-Token, admin ID, log chat ID yine Val Town env’de kalır.
-Dış dosyada gizli bilgi olmaz.
-Val Town loader çok küçük olur.
-Yavaşlama açısından:
-Her update’te yeniden indirme gibi düşünme. Deno/Val Town import cache yapar.
-İlk soğuk çalışmada biraz gecikme olabilir.
-Normal kullanımda fark edilir yavaşlama beklemem.
-Benim net önerim: Bu projede dış import sistemine geçelim. Çünkü senin bot artık tek dosyalık MVP’yi geçti; admin panel, log paneli, kullanıcı detay ekranları gelince 80.000 sınırını sürekli döveceğiz.
-
-9:41
-
-
-
-
-
-
-TAMAM İMPORTA GEÇELİM AMA BANA NET ANLAT AYRICA PUBLİCK NEDEN YAPALIM ÖZEL YAPSAK KODUMU ÇALMASINLAR DİYORUM FARKI NE 
-
-
-
-
-9:43
-
-
-
-
-
-
-Tamam, import sistemine geçelim. Net anlatıyorum.
-Val Town’da iki seçenek var:
-Public dış kod
-Kodun GitHub/Gist gibi herkese açık bir URL’de durur.
-Artısı:
-Val Town kolayca import eder.
-Token dışarıda olmaz, yine Val Town env’de kalır.
-Kurulumu basit.
-Daha az hata çıkar.
-Eksisi:
-Botun çalışma mantığını biri görebilir.
-Ama TELEGRAM_BOT_TOKEN, ADMIN_ID, LOG_CHAT_ID görünmez, çünkü onlar kodda değil env’de kalır.
-
-Private dış kod
-Kod özel repoda durur.
-Artısı:
-Kodunu kimse görmez.
-Eksisi:
-Val Town private GitHub dosyasını doğrudan import edemez.
-Import için token/auth gerekir.
-Auth token’ı URL’ye koyarsan bu sefer daha tehlikeli olur.
-Her deploy/import daha uğraştırır.
-Hata çıkarma ihtimali artar.
-
-Benim önerim:
-Bot fikrinin tamamı çok gizli değilse public raw import daha pratik.
-Kodda hiçbir token olmayacağı için güvenlik açısından büyük risk yok.
-Ama “kodum görünmesin” diyorsan public GitHub yerine şu daha iyi:
-En iyi orta yol: Val Town Blob Storage veya private bağlantılı sistem
-Kod Val Town içinde blob/storage gibi bir yerde tutulur.
-Ana val sadece loader olur.
-Ama bu sistemin import edilebilirliği Val Town tarafında biraz daha özel kurulum ister.
-En basit ve sağlam yol:
-GitHub’da repo açılır.
-kalpat-bot.ts dosyası koyulur.
-Raw URL alınır.
-Val Town’a sadece şu küçük kod yazılır:
-import handler from "https://raw.githubusercontent.com/KULLANICI/REPO/main/kalpat-bot.ts";
-export default handler;
-Val Town env aynı kalır:
-TELEGRAM_BOT_TOKEN
-ADMIN_ID
-OWNER_ID
-LOG_CHAT_ID
-BOT_USERNAME
-MATCH_ANIMATION_FILE_ID
-DEFAULT_PROFILE_PHOTO_URL
-Özel repo istersek:
-Val Town o dosyayı direkt çekemez.
-GitHub token ile çekmek gerekir.
-Bu da loader kodunu daha karmaşık ve riskli yapar.
-Benim net kararım:
-Önce public raw import ile sistemi ayağa kaldıralım.
-Kodda gizli bilgi olmayacak. Tokenlar env’de kalacak. Çalışınca istersen sonra kodu gizleme/özel taşıma için ikinci aşama yaparız.
-
-9:44
-
-
-
-
-
-
-
-
-
-val içinde mi daha iyi ? yoksa github mı
-
-
-
-9:51
-
-
-
-
-
-
-Bence GitHub daha iyi. Val Town Blob Storage bu iş için daha karışık ve kod import etmek için en temiz yol değil.
-Net kıyas:
-GitHub
-Kod dosyası olarak durur.
-Raw URL ile direkt import edilir.
-Güncellemesi kolay.
-Versiyon geçmişi olur.
-Kod bozulursa eski sürüme dönebiliriz.
-Val Town’da sadece minicik loader kalır.
-Bu proje için en mantıklı yol.
-
-Val Town Blob Storage
-Daha çok dosya/görsel/veri saklamak için iyi.
-Kod dosyasını oradan import etmek daha uğraştırıcı olabilir.
-Güncelleme ve versiyon takibi GitHub kadar rahat değil.
-Bot kodu için değil, mesela varsayılan profil görseli gibi asset için daha uygun.
-
-Benim önerim:
-Bot kodu: GitHub
-Görseller: Val Town Blob Storage veya Telegram file_id
-Env değerleri: Val Town Env vars
-Webhook loader: Val Town main.ts
-Val Town’da kalacak kod sadece şuna benzer olacak:
-import handler from "https://raw.githubusercontent.com/KULLANICI/REPO/main/kalpat-bot.ts";
-export default handler;
-Gizlilik için:
-Token GitHub’a konmayacak.
-Admin ID, log ID env’de kalacak.
-GitHub public olursa kod görünür ama gizli bilgiler görünmez.
-Kodun görünmesini istemiyorsan private repo daha güvenli ama Val Town’ın private raw import etmesi uğraştırır.
-Ben olsam bu aşamada GitHub public repo + env gizli bilgiler Val Town’da yapardım. En hızlı, en az arıza çıkaran yol bu.
-
-9:51
-
-
-Yapıştırılan metin(10).txt
-Belge
- kodum bu baksana içinde özel bilgiler tokenler var mı ? 
-
-Kodun görünen kısmında token Deno.env.get(...) üzerinden alınıyor gibi; yine de dosyanın tamamında açık token, chat ID ve gizli değer kalmış mı hızlıca tarıyorum.
-
-41s boyunca düşündüm
-Baktım: Telegram bot token açık şekilde yok. Kod token’ı env’den alıyor:
-
-TELEGRAM_BOT_TOKEN, ADMIN_ID, LOG_CHAT_ID boş/env üzerinden. 
-
-
-Ama şu özel bilgi var:
-OWNER_ID içinde direkt 8241488481 yazıyor. 
-
-
-Bunu public GitHub’a koymadan önce şöyle yap:
-
-const OWNER_ID=Number(Deno.env.get("OWNER_ID")??"0");
-Yani public’e koymadan önce 8241488481’i kaldır.
-
-Sonuç:
-Token yok, büyük tehlike yok. Ama OWNER_ID açık kalmış; onu env’ye taşıyalım.
-
-
-owner id görünmesi ne sorun yartabilir ?
-
-OWNER_ID'nin görünmesi token kadar kritik değildir.
-
-Birisi senin:
-
-Telegram kullanıcı ID'ni öğrenmiş olur.
-
-Kodda admin kontrolleri varsa hangi hesabın "sahip" olduğunu görür.
-
-Seni hedef alan spam, bot denemeleri veya sahte admin taklitleri yapabilir.
-
-Ama sadece OWNER_ID ile:
-
-❌ Botu ele geçiremez
-❌ Mesajlarını okuyamaz
-❌ Val Town'a erişemez
-❌ Tokeni çıkaramaz
-
-Asıl kritik olanlar:
-
-TELEGRAM_BOT_TOKEN
-
-GitHub erişim tokenları
-
-Val Town API anahtarları
-
-Veritabanı şifreleri
-
-Webhook gizli URL'leri
-
-Bunlar sızarsa problem büyük olur.
-
-Ben olsam yine de OWNER_ID'yi env'ye taşırım çünkü:
-
-const OWNER_ID = Number(Deno.env.get("OWNER_ID") ?? "0");
-yapmak 5 saniye sürüyor ve kod tamamen temiz oluyor.
-
-Özet:
-
-🟢 Public GitHub'a bu haliyle koysan bot çalınmaz.
-🟡 OWNER_ID görünür, ama güvenlik açığı oluşturmaz.
-🟢 Profesyonel görünmesi için env'ye taşımak daha iyi.
-
-
-2b4f0af9-1dba-49b4-aae4-22585ff1b063.png
- bunlar var envde şimdi ownreda eklettir
-
-Evet, bence ekle.
-
-Şu an sende:
-
-MATCH_ANIMATION_FILE_ID
-LOG_CHAT_ID
-ADMIN_ID
-TELEGRAM_BOT_TOKEN
-var.
-
-Bir tane daha oluştur:
-
-OWNER_ID
-Value kısmına:
-
-8241488481
-yaz.
-
-Sonra kodda bunu değiştir:
-
-Eski:
-
-const OWNER_ID=Number(Deno.env.get("OWNER_ID")??"8241488481");
-Yeni:
-
-const OWNER_ID=Number(Deno.env.get("OWNER_ID")??"0");
-Böylece GitHub'a attığında:
-
-Token görünmez ✅
-
-Admin ID görünmez ✅
-
-Owner ID görünmez ✅
-
-Log grup ID görünmez ✅
-
-Yani kodu public GitHub'a koysan bile botun gizli bilgileri tamamen Val Town Env'de kalır.
-
-Bu arada kodun başında gördüğüm env listesine göre GitHub'a geçmeden önce şunları da eklemen gerekecek:
-
-BOT_USERNAME
-DEFAULT_PROFILE_PHOTO_URL
-Çünkü kod bunları da Deno.env.get(...) ile okumaya çalışıyor. OWNER_ID'yi eklerken bunları da kontrol etmeni öneririm. Eğer eksiklerse bot açıldığında bazı özellikler çalışmayabilir.
-
-
-
-Yapıştırılan metin(11).txt
-Belge
- şimdi oldu mu 
-
-Evet, bu kısmı düzeltmişsin. Artık:
-
-const OWNER_ID=Number(Deno.env.get("OWNER_ID")??"0");
-olmuş. 
-
-
-Yani kodun içinde artık senin ID'n hardcoded durmuyor.
-
-Şimdi GitHub'a atmadan önce kontrol listesi:
-
-✅ TELEGRAM_BOT_TOKEN → env
-✅ ADMIN_ID → env
-✅ LOG_CHAT_ID → env
-✅ OWNER_ID → env 
-
-
-Ama dikkatimi çeken bir şey var:
-
-Kod hâlâ şunları env'den okumaya çalışıyor:
-
-BOT_USERNAME
-DEFAULT_PROFILE_PHOTO_URL
-MATCH_ANIMATION_FILE_ID
-
-
-MATCH_ANIMATION_FILE_ID sende var.
-
-Ama ekran görüntüsünde:
-
-BOT_USERNAME
-DEFAULT_PROFILE_PHOTO_URL
-OWNER_ID
-gözükmüyor.
-
-Ben olsam Val Town Env'e şunları da eklerim:
-
-OWNER_ID=8241488481
-BOT_USERNAME=KalpAtBot
-DEFAULT_PROFILE_PHOTO_URL=https://...
-Bunlar eklenince kod tarafı tamamen temiz olur ve GitHub'a public koymak için çok daha uygun hale gelir.
-
-Bu arada güvenlik açısından baktığım bölümde açık token veya açık admin bilgisi görmedim. Şu anki hali önceki dosyadan daha temiz. 👍
-
-
-sırasıyla eksiklikleri eklet kodu yazdık ama eksiklikleri tanımlamadık. 80.000 den büyük olduğu için eski kod çalışıyor şuan o yüzden githuba yükleyip çalışır hale getirelim
-
-Tamam. Sıra şu olacak:
-
-1. Val Town Env’e eksikleri ekle
-
-Şunları ekle:
-
-OWNER_ID
-Value:
-
-8241488481
-BOT_USERNAME
-Value:
-
-KalpAtBot
-DEFAULT_PROFILE_PHOTO_URL
-Value şimdilik boş bırakma, bunu koy:
-
-https://api.dicebear.com/9.x/initials/png?seed=KalpAt
-2. GitHub’da repo aç
-
-Ad önerisi:
-
-kalpat-bot
-Public yap.
-
-3. GitHub’a dosya ekle
-
-Dosya adı:
-
-kalpat-bot.ts
-İçine son düzelttiğimiz büyük kodu yapıştır.
-
-4. Raw link al
-
-GitHub’da dosyayı aç → Raw butonuna bas → çıkan linki kopyala.
-
-Link şuna benzeyecek:
-
-https://raw.githubusercontent.com/kullaniciadi/kalpat-bot/main/kalpat-bot.ts
-5. Val Town’daki eski büyük kodu tamamen sil
-
-Val Town editörde:
-
-Ctrl + A
-Delete
-Sonra sadece bunu koy:
-
-import handler from "RAW_LINK_BURAYA";
-export default handler;
-Örnek:
-
-import handler from "https://raw.githubusercontent.com/warzoyunahmet/kalpat-bot/main/kalpat-bot.ts";
-export default handler;
-6. Save / Deploy yap
-
-Sonra botta /start dene.
-
-Şu an hedefimiz:
-Val Town’da eski 80.000 sınırına takılan kodu tamamen kaldırıp, Val Town’u sadece GitHub kodunu çağıran loader yapmak.
-
-
-Normal, çünkü bot şu an eski kodla çalışıyor olabilir veya ADMIN_ID seni tanımıyor olabilir.
-
-Fotoğraf atınca file_id göndermesi için şu şartlar lazım:
-
-Fotoğrafı bota özelden atacaksın.
-
-Fotoğrafı atan hesap, Env’deki ADMIN_ID ile aynı olmalı.
-
-Çalışan kodda şu mantık aktif olmalı:
-
-if(from.id===ADMIN_ID&&hasMediaPayload(msg)){
-  return sendAdminFileId(chat.id,msg);
-}
-Şu an eski kod çalıştığı için cevap vermemiş olabilir.
-
-En net çözüm:
-
-Önce GitHub import sistemini çalıştıralım. Sonra bota fotoğrafı tekrar atınca sana şöyle cevap vermeli:
-
-Dosya tipi: photo
-
-Profil fotoğrafı olmayanlarda bunu kullanmak için Val Town env'e şunu ekle:
-
-DEFAULT_PROFILE_PHOTO_URL=AgACAg...
-Şimdilik DEFAULT_PROFILE_PHOTO_URL için geçici olarak bunu koyabilirsin:
-
-https://api.dicebear.com/9.x/initials/png?seed=KalpAt
-Bot çalışır hale gelsin; sonra gerçek anonim avatarı file_id ile değiştiririz.
-
-
-hayrır ya eskiden yapmıştık bana boto gönder o sana uzantı yollıcak diye bişiler yaptırmıştı acaba hangi kodla
-
-Evet, hatırladım. O yöntem genelde şöyleydi:
-
-Bota özelden bir fotoğraf gönderiyorsun ve kod şu şekilde dosya ID'sini geri yolluyordu:
-
-if (msg.photo?.length) {
-  const fileId = msg.photo[msg.photo.length - 1].file_id;
-
-  await sendMessage(
-    chat.id,
-    `FILE_ID:\n\n${fileId}`
-  );
-
-  return;
-}
-Ya da biraz daha gelişmiş hali:
-
-if (msg.photo?.length) {
-  const photo = msg.photo[msg.photo.length - 1];
-
-  await sendMessage(
-    chat.id,
-    `📸 FOTOĞRAF
-
-file_id:
-${photo.file_id}
-
-unique_id:
-${photo.file_unique_id}`
-  );
-
-  return;
-}
-Senin eski botlarından birinde muhtemelen "admin fotoğraf atınca file_id döndür" özelliği vardı.
-
-Şu anki dosyada gördüğüm kod ise sadece:
-
-if(from.id===ADMIN_ID&&hasMediaPayload(msg)){
-  return sendAdminFileId(chat.id,msg);
-}
-mantığını kullanıyor. 
-
-
-Yani çalışıyorsa fotoğraf attığında sana:
-
-DEFAULT_PROFILE_PHOTO_URL=AgACAg...
-şeklinde cevap vermesi lazım.
-
-Cevap vermiyorsa büyük ihtimalle:
-
-Eski sürüm çalışıyor,
-
-ADMIN_ID yanlış,
-
-Ya da şu an yüklediğin yeni kod henüz deploy olmadı.
-
-Benim tahminim sen daha önce ayrı bir "file_id öğrenme" botunda şu mini kodu kullanmıştın:
-
-bot.on("photo", async (ctx) => {
-  const fileId = ctx.message.photo.pop().file_id;
-  await ctx.reply(fileId);
-});
-ve fotoğrafı atınca direkt file_id dönüyordu. Bu en yaygın yöntemdir.
-
-
-her neyse tamam nerde kalmıştık salla görseli şimdilik okey env olduralım
-
-Tamam, görseli şimdilik geçiyoruz.
-
-Val Town Env’e sırayla şunları ekle:
-
-OWNER_ID
-8241488481
-BOT_USERNAME
-KalpAtBot
-DEFAULT_PROFILE_PHOTO_URL
-https://api.dicebear.com/9.x/initials/png?seed=KalpAt
-Mevcut olanlar kalsın:
-
-TELEGRAM_BOT_TOKEN
-ADMIN_ID
-LOG_CHAT_ID
-MATCH_ANIMATION_FILE_ID
-Bunlar tamamlanınca sonraki adım:
-
-GitHub repo aç → kalpat-bot.ts dosyasına büyük kodu koy → Raw link al → Val Town’a 2 satırlık import loader koyacağız.
-
- oldu mu 
-
-
-
-import{Hono}from"https://deno.land/x/hono@v4.3.11/mod.ts";import{sqlite}from"https://esm.town/v/std/sqlite/main.ts";const TOKEN=Deno.env.get("TELEGRAM_BOT_TOKEN")??"";const ADMIN_ID=Number(Deno.env.get("ADMIN_ID")??"0");const OWNER_ID=Number(Deno.env.get("OWNER_ID")??"0");const LOG_CHAT_ID=Deno.env.get("LOG_CHAT_ID")??"";const BOT_USERNAME=(Deno.env.get("BOT_USERNAME")??"KalpAtBot").replace(/^@/,"",);const MATCH_ANIMATION_FILE_ID=Deno.env.get("MATCH_ANIMATION_FILE_ID")??"";const DEFAULT_PROFILE_PHOTO_URL=Deno.env.get("DEFAULT_PROFILE_PHOTO_URL")??"https://api.dicebear.com/9.x/initials/png?seed=KalpAt";const WELCOME_DISCOUNT_PERCENT=Number(Deno.env.get("WELCOME_DISCOUNT_PERCENT")??"30",);const WELCOME_CAMPAIGN_UNTIL=Deno.env.get("WELCOME_CAMPAIGN_UNTIL")??"2026-07-11T20:59:59Z";const STRICT_ALLOWED_GROUPS=Deno.env.get("STRICT_ALLOWED_GROUPS")==="1";const ALLOWED_GROUP_IDS=new Set((Deno.env.get("ALLOWED_GROUP_IDS")??"").split(",").map((x)=>Number(x.trim())).filter(Number.isFinite),);const TG=https://api.telegram.org/bot${TOKEN};const TZ="Europe/Istanbul";const BOT_NAME="KalpAt";const EM={heart:"\u{2764}\u{FE0F}",twoHearts:"\u{1F495}",sparklingHeart:"\u{1F496}",party:"\u{1F389}",user:"\u{1F464}",fire:"\u{1F525}",eye:"\u{1F440}",search:"\u{1F50E}",sparkles:"\u{2728}",star:"\u{2B50}",gift:"\u{1F381}",home:"\u{1F3E0}",check:"\u{2705}",cross:"\u{274C}",next:"\u{27A1}\u{FE0F}",chat:"\u{1F4AC}",camera:"\u{1F4F7}",pin:"\u{1F4CD}",note:"\u{1F4DD}",woman:"\u{1F469}",man:"\u{1F468}",ticket:"\u{1F3AB}",mail:"\u{1F48C}",cake:"\u{1F382}",hourglass:"\u{23F3}",diamond:"\u{1F48E}",target:"\u{1F3AF}",};const PACKAGES={mini:{title:"Kalp Mini",stars:250,days:7,dailyLikes:3,features:["gender_filter"],},plus:{title:"Kalp Plus",stars:450,days:30,dailyLikes:3,features:["gender_filter","see_likers"],},gold:{title:"Kalp Gold",stars:800,days:30,dailyLikes:7,features:["gender_filter","see_likers","liked_only_visibility"],},vip:{title:"Kalp VIP",stars:1500,days:30,dailyLikes:15,features:["gender_filter","see_likers","liked_only_visibility"],},};let schemaReady=false;let webhookReady=false;let cacheReady=false;const knownUserIds=new Set();const pendingUsers=new Map();const app=new Hono();app.get("/",(c)=>c.json({ok,bot}));app.get("/flush",async(c)=>{await requireAdminFromQuery(c.req.query("admin"));const count=await flushPendingUsers();return c.json({ok,flushed});});app.get("/cron",async(c)=>{await requireAdminFromQuery(c.req.query("admin"));const count=await flushPendingUsers();return c.json({ok,flushed,now()});});app.post("/",async(c)=>handleUpdate(await c.req.json()));app.post("/webhook",async(c)=>handleUpdate(await c.req.json()));export default async function handler(req){if(!TOKEN)return new Response("TELEGRAM_BOT_TOKEN eksik",{status:500});await ensureSchema();await maybeSetWebhook(req.url);return app.fetch(req);}async function handleUpdate(update){try{await ensureSchema();if(update.pre_checkout_query){await answerPreCheckout(update.pre_checkout_query.id,true);return ok();}if(update.message?.successful_payment){await handleSuccessfulPayment(update.message);return ok();}if(update.callback_query){await handleCallback(update.callback_query);return ok();}if(update.message){await handleMessage(update.message);await maybeAutoFlushBatch();return ok();}}catch(err){await logError("update",err);}return ok();}async function handleMessage(msg){const chat=msg.chat;const from=msg.from;if(!chat||!from||from.is_bot)return;if(chat.type==="group"||chat.type==="supergroup"){await handleGroupMessage(chat.id,from);return;}if(chat.type!=="private")return;const state=await getState(from.id);if(state?.step==="edit_photo"){return handleProfilePhotoUpload(chat.id,from,msg,state);}if(state?.step==="compose_message"&&hasMediaPayload(msg)){return continueMediaMessageFlow(chat.id,from,msg,state);}if(from.id===ADMIN_ID&&hasMediaPayload(msg)){return sendAdminFileId(chat.id,msg);}if(hasMediaPayload(msg)){await logUserEvent("Engellenen medya",from,"Medya premium eslesme mesaji disinda engellendi.",);return sendMessage(chat.id,"Bu medya turu burada kabul edilmiyor.");}const text=(msg.text??"").trim();if(text==="/start"||text.startsWith("/start ")){return startUser(from,msg.chat.id,text.split(/\s+/)[1]||"");}if(text==="/menu"){await clearState(from.id);return sendMainMenu(msg.chat.id);}if(text==="/profile")return sendProfile(msg.chat.id,from.id);if(text==="/edit")return showEditProfile(msg.chat.id,from.id);if(text==="/delete")return deleteProfile(msg.chat.id,from.id);if(text==="/testmatch"&&from.id===ADMIN_ID){await sendMatchMessage(msg.chat.id);return sendMessage(msg.chat.id,"Test eşleşme bildirimi gönderildi.");}if(text.startsWith("/admin"))return handleAdmin(msg.chat.id,from.id,text);if(text&&hasBlockedContact(text)){await logUserEvent("Engellenen metin",from,text);return sendMessage(msg.chat.id,"Link, @kullanici adi, telefon veya reklam gönderilemez.",);}if(text&&!text.startsWith("/")&&!state){await logUserEvent("Kullanici mesaji",from,text);}if(state)return continueProfileFlow(msg.chat.id,from,text,state);await sendMessage(msg.chat.id,"Komutlar: /start /menu /profile /edit /delete",);}async function handleGroupMessage(groupId,from){if(STRICT_ALLOWED_GROUPS&&ALLOWED_GROUP_IDS.size&&!ALLOWED_GROUP_IDS.has(groupId))return;const mode=await getCaptureMode();if(mode==="batch"){await queueGroupUser(groupId,from);if(groupId!==0)await queueGroupUser(0,from);return;}await upsertGroupUser(groupId,from);if(groupId!==0)await upsertGroupUser(0,from);}async function queueGroupUser(groupId,from){const key=userKey(groupId,from.id);knownUserIds.add(key);const now=nowIso();await sqlite.execute({sql:insert into pending_users(group_id,user_id,first_name,last_name,username,photo_file_id,message_count,last_seen_at,created_at) values(?,?,?,?,?,?,1,?,?) on conflict(group_id,user_id) do update set first_name=excluded.first_name, last_name=excluded.last_name, username=excluded.username, photo_file_id=coalesce(nullif(excluded.photo_file_id,''),pending_users.photo_file_id), message_count=pending_users.message_count+1, last_seen_at=excluded.last_seen_at,args:[groupId,from.id,from.first_name??"",from.last_name??"",from.username??"",await getUserPhotoFileId(from.id),now,now,],});}async function upsertGroupUser(groupId,from){const key=userKey(groupId,from.id);knownUserIds.add(key);const now=nowIso();const user={groupId,userId.id,firstName.first_name??"",lastName.last_name??"",username.username??"",photoFileId getUserPhotoFileId(from.id),lastSeenAt,};await sqlite.execute({sql:insert into users(group_id,user_id,first_name,last_name,username,photo_file_id,active_dating,is_adult,message_count,last_seen_at,created_at,updated_at) values(:groupId,:userId,:firstName,:lastName,:username,:photoFileId,0,0,1,:lastSeenAt,:lastSeenAt,:lastSeenAt) on conflict(group_id,user_id) do update set first_name=excluded.first_name, last_name=excluded.last_name, username=excluded.username, photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id), message_count=users.message_count+1, last_seen_at=excluded.last_seen_at, updated_at=excluded.updated_at,args,});if(groupId===0&&LOG_CHAT_ID){await sendMessage(LOG_CHAT_ID,${EM.check} Grup mesaji havuza yazildi\nID: ${from.id}\nAd: ${ displayName(user) },).catch(()=>{});}}async function startUser(from,chatId,payload=""){await warmCache();const groupId=inferGroupForUser(from.id);await recordReferral(from.id,payload);const existing=await getUser(groupId,from.id);if(existing?.active_dating&&existing?.is_adult){await clearState(from.id);await sendMessage(chatId,await welcomeBackText(groupId));return sendMainMenu(chatId);}const pending=pendingUsers.get(userKey(groupId,from.id))??await getPendingUser(groupId,from.id);if(pending){pendingUsers.delete(userKey(groupId,from.id));await upsertPassiveUser(pending);await sqlite.execute({sql:"delete from pending_users where group_id=? and user_id=?",args:[groupId,from.id],});}await sqlite.execute({sql:insert into users(group_id,user_id,first_name,last_name,username,photo_file_id,active_dating,is_adult,created_at,updated_at,last_seen_at,message_count) values(:group_id,:user_id,:first_name,:last_name,:username,:photo_file_id,1,0,:now,:now,:now,0) on conflict(group_id,user_id) do update set first_name=excluded.first_name,last_name=excluded.last_name,username=excluded.username,photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id), active_dating=1,deleted_at=null,banned=0,updated_at=excluded.updated_at,last_seen_at=excluded.last_seen_at,args:{group_id,user_id.id,first_name.first_name??"",last_name.last_name??"",username.username??"",photo_file_id getUserPhotoFileId(from.id),now(),},});knownUserIds.add(userKey(groupId,from.id));await setState(from.id,"adult_confirm",{groupId});await sendMessage(chatId,await firstWelcomeText(groupId),keyboard([[btn(${EM.check} 18+ onayliyorum,"adult_yes")],[btn(${EM.cross} Vazgec,"cancel"),]]),);}async function continueProfileFlow(chatId,from,text,state){const data=JSON.parse(state.data_json||"{}");const groupId=Number(data.groupId||inferGroupForUser(from.id));if(!text&&state.step!=="edit_photo"){return sendMessage(chatId,"Lütfen metin olarak yazın.");}if(state.step==="city"){await updateUser(groupId,from.id,{city(text,40)});await setState(from.id,"gender",{groupId});return sendMessage(chatId,${EM.user} Cinsiyetinizi seçin.,keyboard([[btn(${EM.woman} Kadın,"gender_female"),btn(${EM.man} Erkek,"gender_male"),]]),);}if(state.step==="bio"){await updateUser(groupId,from.id,{bio(text,180)});await clearState(from.id);await sendMessage(chatId,${EM.check} Profil tamamlandı. Artık beğeni gönderebilir ve eşleşebilirsiniz.,);return sendMainMenu(chatId);}if(state.step==="edit_city"){await updateUser(groupId,from.id,{city(text,40)});await clearState(from.id);await sendMessage(chatId,"Şehir güncellendi.");return showEditProfile(chatId,from.id);}if(state.step==="edit_name"){await updateUser(groupId,from.id,{display_name(text,40)});await clearState(from.id);await sendMessage(chatId,"Görünen ad güncellendi.");return showEditProfile(chatId,from.id);}if(state.step==="edit_bio"){await updateUser(groupId,from.id,{bio(text,180)});await clearState(from.id);await sendMessage(chatId,"Bio güncellendi.");return showEditProfile(chatId,from.id);}if(state.step==="edit_interests"){await updateUser(groupId,from.id,{interests(text,120)});await clearState(from.id);await sendMessage(chatId,${EM.check} İlgi alanları güncellendi.);return showEditProfile(chatId,from.id);}if(state.step==="edit_age"){const age=Number(text);if(!Number.isInteger(age)||age<18||age>99){return sendMessage(chatId,"Lütfen 18-99 arasında bir yaş yaz.");}await updateUser(groupId,from.id,{age});await clearState(from.id);await sendMessage(chatId,${EM.check} Yaş güncellendi.);return showEditProfile(chatId,from.id);}if(state.step==="delete_reason"){await createDeleteRequest(chatId,from,groupId,text);return;}if(state.step==="compose_message"){const toId=Number(data.toId);const target=await getUser(groupId,toId);if(!toId){await clearState(from.id);return sendMessage(chatId,"Mesaj gönderilecek eşleşme bulunamadı.");}if(!(await areMatched(groupId,from.id,toId))){await clearState(from.id);return sendMessage(chatId,"Bu kişiyle aktif eşleşme bulunamadı.");}const body=clean(text,500);await sqlite.execute({sql:"insert into match_messages(group_id,from_user_id,to_user_id,text,created_at) values(?,?,?,?,?)",args:[groupId,from.id,toId,body,nowIso()],});await logChatMessage(from,toId,body);await clearState(from.id);const fromName=displayName({firstName.first_name??"",lastName.last_name??"",first_name.first_name??"",last_name.last_name??"",});await sendMessage(toId,${EM.chat} ${fromName} sana mesaj gönderdi:\n\n${body},keyboard([[btn(${EM.chat} Cevapla,msg:${from.id}),btn(${EM.user} Profili gör,view_match:${from.id}),],[btn(${EM.cross} Eşleşmeyi kaldır,unmatch:${from.id})],[btn(${EM.home} Menü,"menu")],]),).catch(()=>{});return sendMessage(chatId,${EM.check} Mesajin ${ target ? displayName(target) : "eslesmene" } iletildi.,keyboard([[btn(${EM.chat} Yeni mesaj yaz,msg:${toId}),btn(${EM.user} Profili gör,view_match:${toId}),],[btn(${EM.home} Menü,"menu")]]),);}}async function continueMediaMessageFlow(chatId,from,msg,state){const data=JSON.parse(state.data_json||"{}");const groupId=Number(data.groupId||inferGroupForUser(from.id));const toId=Number(data.toId);if(!toId||!(await areMatched(groupId,from.id,toId))){await clearState(from.id);return sendMessage(chatId,"Bu kişiyle aktif eşleşme bulunamadı.");}if(!(await hasAnyPremium(groupId,from.id))){await logUserEvent("Premium olmayan medya denemesi",from,mediaKind(msg));return showShop(chatId,from.id,${EM.camera} Fotoğraf, video ve GIF mesajları premium üyelere açıktır.,);}const media=extractMedia(msg);if(!media)return sendMessage(chatId,"Bu medya turu desteklenmiyor.");const fromName=displayName({first_name.first_name??"",last_name.last_name??"",});const caption=${EM.chat} ${fromName} sana ${media.label} gönderdi.;await sendMedia(toId,media,caption,keyboard([[btn(${EM.chat} Cevapla,msg:${from.id}),btn(${EM.user} Profili gör,view_match:${from.id}),],[btn(${EM.cross} Eşleşmeyi kaldır,unmatch:${from.id})],[btn(${EM.home} Menü,"menu")],]),).catch(()=>{});await logMediaEvent("Premium medya mesaji",from,toId,media);await clearState(from.id);return sendMessage(chatId,${EM.check} Medya mesajin iletildi.,keyboard([[btn(${EM.chat} Yeni mesaj yaz,msg:${toId})],[btn(${EM.home} Menü,"menu"),]]),);}async function handleCallback(q){const data=q.data??"";const from=q.from;const chatId=q.message?.chat?.id??from.id;await answerCallback(q.id);if(data==="noop")return;if(data==="cancel"){await clearState(from.id);return sendMessage(chatId,"Islem iptal edildi.");}if(data==="adult_yes"){const state=await getState(from.id);const groupId=JSON.parse(state?.data_json||"{}").groupId||inferGroupForUser(from.id);await updateUser(groupId,from.id,{is_adult:1});await setState(from.id,"city",{groupId});return sendMessage(chatId,${EM.pin} Şehir yazın. Örnek: İstanbul);}if(data.startsWith("gender_")){const state=await getState(from.id);const groupId=JSON.parse(state?.data_json||"{}").groupId||inferGroupForUser(from.id);await updateUser(groupId,from.id,{gender.replace("gender_","")});await setState(from.id,"bio",{groupId});return sendMessage(chatId,${EM.sparkles} Standartta iki cinsiyet de görünür.\n${EM.search} Cinsiyet filtresi paketlerde açılır.\n\n${EM.note} Kısa bio yaz. En fazla 180 karakter.,);}if(data.startsWith("seek_")){const state=await getState(from.id);const groupId=JSON.parse(state?.data_json||"{}").groupId||inferGroupForUser(from.id);await updateUser(groupId,from.id,{seek_gender.replace("seek_",""),});await clearState(from.id);return sendMessage(chatId,${EM.check} Cinsiyet filtresi güncellendi.);}if(data==="edit_profile")return showEditProfile(chatId,from.id);if(data==="edit_city"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_city",{groupId.group_id});return sendMessage(chatId,"Yeni şehrini yaz.");}if(data==="edit_name"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_name",{groupId.group_id});return sendMessage(chatId,"Profilde görünecek adını yaz. En fazla 40 karakter.");}if(data==="edit_bio"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_bio",{groupId.group_id});return sendMessage(chatId,"Yeni bio yaz. En fazla 180 karakter.");}if(data==="edit_interests"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_interests",{groupId.group_id});return sendMessage(chatId,"İlgi alanlarını yaz. Örnek: müzik, kahve, film, spor",);}if(data==="edit_age"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_age",{groupId.group_id});return sendMessage(chatId,${EM.user} Yaşını yaz. Örnek: 24);}if(data==="edit_photo"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_photo",{groupId.group_id});return sendMessage(chatId,"Profil fotoğrafı olarak kullanmak istediğin fotoğrafı gönder.",);}if(data==="refresh_photo")return refreshProfilePhoto(chatId,from.id);if(data.startsWith("edit_gender_")){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await updateUser(user.group_id,from.id,{gender.replace("edit_gender_",""),});await sendMessage(chatId,"Cinsiyet güncellendi.");return showEditProfile(chatId,from.id);}if(data==="toggle_badge")return togglePremiumBadge(chatId,from.id);if(data.startsWith("msg:")){return beginMatchedMessage(chatId,from.id,Number(data.split(":")[1]));}if(data.startsWith("view_match:")){return viewMatchedProfile(chatId,from.id,Number(data.split(":")[1]));}if(data.startsWith("unmatch:")){await clearInlineKeyboard(q);return unmatchUser(chatId,from.id,Number(data.split(":")[1]));}if(data==="browse")return showNextProfile(chatId,from.id);if(data.startsWith("like:")){await clearInlineKeyboard(q);return likeProfile(chatId,from.id,Number(data.split(":")[1]));}if(data==="skip")return showNextProfile(chatId,from.id);if(data.startsWith("skip:")){await clearInlineKeyboard(q);return snoozeProfile(chatId,from.id,Number(data.split(":")[1]),3);}if(data.startsWith("hide:")){await clearInlineKeyboard(q);return hideProfile(chatId,from.id,Number(data.split(":")[1]));}if(data.startsWith("dismiss_liker:")){await clearInlineKeyboard(q);return dismissLiker(chatId,from.id,Number(data.split(":")[1]));}if(data==="buy")return showShop(chatId,from.id);if(data==="features")return showFeatures(chatId);if(data==="invite")return showInvite(chatId,from.id);if(data==="matches")return showMatches(chatId,from.id);if(data==="filter")return showGenderFilter(chatId,from.id);if(data.startsWith("buy:")){return sendInvoice(chatId,from.id,data.slice(4));}if(data==="likers")return showLikers(chatId,from.id);if(data==="menu")return sendMainMenu(chatId);}async function sendMainMenu(chatId){const active=await getActiveUser(Number(chatId));const groupId=active?.group_id??inferGroupForUser(Number(chatId));await sendMessage(chatId,await menuText(groupId),keyboard([[btn(${EM.note} Profilimi duzenle,"edit_profile")],[btn(${EM.twoHearts} Profil gez,"browse")],[btn(${EM.chat} Eslesmelerim,"matches")],[btn(${EM.eye} Beni beğenenler,"likers"),btn(${EM.search} Cinsiyet filtresi,"filter"),],[btn(${EM.sparkles} Özellikler,"features"),btn(${EM.star} Paketler,"buy"),],[btn(${EM.gift} Davet et,"invite")],]),);}async function showNextProfile(chatId,viewerId){const viewer=await getActiveUser(viewerId);if(!viewer)return sendMessage(chatId,"Önce /start ile profil oluşturun.");if(!viewer.is_adult){return sendMessage(chatId,"Devam etmek icin /start ile 18+ onayi verin.");}const row=await sqlite.execute({sql:select u.* from users u left join likes l on l.group_id=u.group_id and l.from_user_id=:viewer and l.to_user_id=u.user_id where u.group_id=:group_id and u.user_id<>:viewer and u.deleted_at is null and u.banned=0 and l.id is null and not exists(select 1 from profile_snoozes s where s.group_id=u.group_id and s.viewer_user_id=:viewer and s.snoozed_user_id=u.user_id and s.expires_at>:now) and not exists(select 1 from hidden_profiles h where h.group_id=u.group_id and h.viewer_user_id=:viewer and h.hidden_user_id=u.user_id and h.expires_at>:now) and ( not exists(select 1 from premium p where p.group_id=u.group_id and p.user_id=u.user_id and p.feature='liked_only_visibility' and p.expires_at>:now) or exists(select 1 from likes lx where lx.group_id=u.group_id and lx.from_user_id=u.user_id and lx.to_user_id=:viewer) ) and (:can_filter=0 or :seek='any' or u.gender is null or u.gender='' or u.gender=:seek) order by u.active_dating desc, u.last_seen_at desc limit 1,args:{viewer,group_id.group_id,seek.seek_gender||"any",can_filter hasPremium(viewer.group_id,viewerId,"gender_filter")?1:0,now(),},});const target=row.rows[0];if(!target){return sendMessage(chatId,${EM.hourglass} Şu an gösterecek yeni profil kalmadı.\n\nBir süre sonra tekrar deneyebilirsin. Yeni kişiler havuza eklendikçe keşif yenilenir.,keyboard([[btn(${EM.home} Ana menü,"menu")],[btn(${EM.gift} Davet et,"invite"),]]),);}await sendProfileCard(chatId,target,keyboard([[btn(${EM.heart} Kalp At,like:${target.user_id}),btn(${EM.next} Gec,skip:${target.user_id}),btn(${EM.cross} Olmaz,hide:${target.user_id}),],[btn(${EM.home} Menü,"menu")]]),);}async function hideProfile(chatId,viewerId,hiddenUserId){const viewer=await getActiveUser(viewerId);if(!viewer)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await sqlite.execute({sql:insert into hidden_profiles(group_id,viewer_user_id,hidden_user_id,created_at,expires_at) values(?,?,?,?,?) on conflict(group_id,viewer_user_id,hidden_user_id) do update set created_at=excluded.created_at, expires_at=excluded.expires_at,args:[viewer.group_id,viewerId,hiddenUserId,nowIso(),addHoursIso(36)],});return showNextProfile(chatId,viewerId);}async function snoozeProfile(chatId,viewerId,snoozedUserId,hours){const viewer=await getActiveUser(viewerId);if(!viewer)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await sqlite.execute({sql:insert into profile_snoozes(group_id,viewer_user_id,snoozed_user_id,created_at,expires_at) values(?,?,?,?,?) on conflict(group_id,viewer_user_id,snoozed_user_id) do update set created_at=excluded.created_at, expires_at=excluded.expires_at,args:[viewer.group_id,viewerId,snoozedUserId,nowIso(),addHoursIso(hours),],});return showNextProfile(chatId,viewerId);}async function likeProfile(chatId,fromId,toId){const from=await getActiveUser(fromId);if(!from||!from.active_dating||!from.is_adult){return sendMessage(chatId,"Önce /start ile aktif profil oluşturun.");}const target=await getUser(from.group_id,toId);if(!target)return sendMessage(chatId,"Profil bulunamadı.");const alreadyLiked=await sqlite.execute({sql:"select 1 from likes where group_id=? and from_user_id=? and to_user_id=? limit 1",args:[from.group_id,fromId,toId],});if(alreadyLiked.rows[0]){return sendMessage(chatId,${EM.heart} Bu profile zaten kalp attin.,keyboard([[btn(${EM.twoHearts} Profil gez,"browse"),btn(${EM.home} Menü,"menu"),]]),);}const canLike=await consumeLikeRight(from.group_id,fromId);if(!canLike){return showShop(chatId,fromId,"Bugünkü ücretsiz beğeni hakkınız bitti.");}await sqlite.execute({sql:"insert or ignore into likes(group_id,from_user_id,to_user_id,created_at) values(?,?,?,?)",args:[from.group_id,fromId,toId,nowIso()],});await logAdminEvent("Kalp atildi",${displayName(from)} (${fromId}) -> ${displayName(target)} (${toId}),);const reciprocal=await sqlite.execute({sql:"select id from likes where group_id=? and from_user_id=? and to_user_id=? limit 1",args:[from.group_id,toId,fromId],});if(reciprocal.rows[0]&&target.active_dating){await sqlite.execute({sql:"insert or ignore into matches(group_id,user1_id,user2_id,created_at) values(?,?,?,?)",args:[from.group_id,Math.min(fromId,toId),Math.max(fromId,toId),nowIso(),],});await logAdminEvent("Eslesme olustu",${displayName(from)} (${fromId}) + ${displayName(target)} (${toId}),);await sendMatchMessage(chatId,toId);await sendMatchMessage(toId,fromId);}else{await sendMessage(chatId,target.active_dating?${EM.heart} Kalp atildi.:${EM.heart} Kalbin kaydedildi. Karsi taraf KalpAt'a katildiginda akisa dahil olur.,);}return showNextProfile(chatId,fromId);}async function sendMatchMessage(chatId,otherUserId){const other=otherUserId?await getActiveUser(otherUserId);const otherName=other?displayName(other):"eslesmen";const displayText=${EM.party} Karsilikli Kalp!\n\n${EM.sparklingHeart} ${otherName} ile eslestin.\n${EM.chat} Bot icinden guvenli sekilde mesajlasabilirsiniz.;const extra=otherUserId?keyboard([[btn(${EM.chat} Mesaj yaz,msg:${otherUserId}),btn(${EM.user} Profili gör,view_match:${otherUserId}),],[btn(${EM.cross} Eşleşmeyi kaldır,unmatch:${otherUserId})],[btn(${EM.home} Menü,"menu")],]):{};if(MATCH_ANIMATION_FILE_ID){const sentAnimation=await tg("sendAnimation",{chat_id,animation,caption,...extra,}).then(()=>true).catch(()=>false);if(sentAnimation)return;if(!sentAnimation){const sentVideo=await tg("sendVideo",{chat_id,video,caption,supports_streaming,...extra,}).then(()=>true).catch(()=>false);if(sentVideo)return;}}await sendMessage(chatId,displayText,extra);}async function consumeLikeRight(groupId,userId){if(isPrivilegedUser(userId))return true;const today=dayKey();const credit=await sqlite.execute({sql:"select * from credits where group_id=? and user_id=?",args:[groupId,userId],});const row=credit.rows[0];if(!row){await sqlite.execute({sql:"insert into credits(group_id,user_id,paid_likes,free_like_day,free_like_used) values(?,?,?,?,1)",args:[groupId,userId,0,today],});return true;}if(row.free_like_day!==today){await sqlite.execute({sql:"update credits set free_like_day=?,free_like_used=1 where group_id=? and user_id=?",args:[today,groupId,userId],});return true;}if(!row.free_like_used){await sqlite.execute({sql:"update credits set free_like_used=1 where group_id=? and user_id=?",args:[groupId,userId],});return true;}if(row.plan_expires_at&&row.plan_expires_at>nowIso()){const usedToday=row.plan_used_day===today?Number(row.plan_used_today||0):0;const dailyLimit=Number(row.plan_daily_likes||0);if(dailyLimit>usedToday){await sqlite.execute({sql:"update credits set plan_used_day=?,plan_used_today=? where group_id=? and user_id=?",args:[today,usedToday+1,groupId,userId],});return true;}}if(Number(row.paid_likes)>0){await sqlite.execute({sql:"update credits set paid_likes=paid_likes-1 where group_id=? and user_id=?",args:[groupId,userId],});return true;}return false;}async function showShop(chatId,userId,prefix=${EM.star} Paket seçin.){const discountInfo=userId?await getBestDiscountInfo(userId):{percent:0,label:""};const discount=discountInfo.percent;const price=(key)=>discountedStars(PACKAGES[key].stars,discount);const priceLabel=(key)=>discount?${PACKAGES[key].stars}${EM.star} -> ${price(key)}${EM.star}:${PACKAGES[key].stars}${EM.star};const discountText=discount?\n${EM.ticket} ${discountInfo.label}: %${discount} indirim aktif:"";const rows=[[btn(${EM.twoHearts} Mini | 3/gün | ${priceLabel("mini")},"buy")],[btn(${EM.sparklingHeart} Plus | 3/gün | ${priceLabel("plus")},"buy",)],[btn(${EM.star} Gold | 7/gün | ${priceLabel("gold")},"buy")],[btn(${EM.fire} VIP | 15/gün | ${priceLabel("vip")},"buy")],[btn(${EM.sparkles} Özellikler,"features"),btn(${EM.home} Ana menü,"menu"),],];await sendMessage(chatId,`${prefix}${discountText}
+import{Hono}from"https://deno.land/x/hono@v4.3.11/mod.ts";import{sqlite}from"https://esm.town/v/std/sqlite/main.ts";const TOKEN=Deno.env.get("TELEGRAM_BOT_TOKEN")??"";const ADMIN_ID=Number(Deno.env.get("ADMIN_ID")??"0");const OWNER_ID=Number(Deno.env.get("OWNER_ID")??"0");const LOG_CHAT_ID=Deno.env.get("LOG_CHAT_ID")??"";const BOT_USERNAME=(Deno.env.get("BOT_USERNAME")??"KalpAtBot").replace(/^@/,"",);const MATCH_ANIMATION_FILE_ID=Deno.env.get("MATCH_ANIMATION_FILE_ID")??"";const DEFAULT_PROFILE_PHOTO_URL=Deno.env.get("DEFAULT_PROFILE_PHOTO_URL")??"https://api.dicebear.com/9.x/initials/png?seed=KalpAt";const WELCOME_DISCOUNT_PERCENT=Number(Deno.env.get("WELCOME_DISCOUNT_PERCENT")??"30",);const WELCOME_CAMPAIGN_UNTIL=Deno.env.get("WELCOME_CAMPAIGN_UNTIL")??"2026-07-11T20:59:59Z";const STRICT_ALLOWED_GROUPS=Deno.env.get("STRICT_ALLOWED_GROUPS")==="1";const ALLOWED_GROUP_IDS=new Set((Deno.env.get("ALLOWED_GROUP_IDS")??"").split(",").map((x)=>Number(x.trim())).filter(Number.isFinite),);const TG=`https://api.telegram.org/bot${TOKEN}`;const TZ="Europe/Istanbul";const BOT_NAME="KalpAt";const EM={heart:"\u{2764}\u{FE0F}",twoHearts:"\u{1F495}",sparklingHeart:"\u{1F496}",party:"\u{1F389}",user:"\u{1F464}",fire:"\u{1F525}",eye:"\u{1F440}",search:"\u{1F50E}",sparkles:"\u{2728}",star:"\u{2B50}",gift:"\u{1F381}",home:"\u{1F3E0}",check:"\u{2705}",cross:"\u{274C}",next:"\u{27A1}\u{FE0F}",chat:"\u{1F4AC}",camera:"\u{1F4F7}",pin:"\u{1F4CD}",note:"\u{1F4DD}",woman:"\u{1F469}",man:"\u{1F468}",ticket:"\u{1F3AB}",mail:"\u{1F48C}",cake:"\u{1F382}",hourglass:"\u{23F3}",diamond:"\u{1F48E}",target:"\u{1F3AF}",};const PACKAGES={mini:{title:"Kalp Mini",stars:250,days:7,dailyLikes:3,features:["gender_filter"],},plus:{title:"Kalp Plus",stars:450,days:30,dailyLikes:3,features:["gender_filter","see_likers"],},gold:{title:"Kalp Gold",stars:800,days:30,dailyLikes:7,features:["gender_filter","see_likers","liked_only_visibility"],},vip:{title:"Kalp VIP",stars:1500,days:30,dailyLikes:15,features:["gender_filter","see_likers","liked_only_visibility"],},};let schemaReady=false;let webhookReady=false;let cacheReady=false;const knownUserIds=new Set();const pendingUsers=new Map();const app=new Hono();app.get("/",(c)=>c.json({ok:true,bot:BOT_NAME}));app.get("/flush",async(c)=>{await requireAdminFromQuery(c.req.query("admin"));const count=await flushPendingUsers();return c.json({ok:true,flushed:count});});app.get("/cron",async(c)=>{await requireAdminFromQuery(c.req.query("admin"));const count=await flushPendingUsers();return c.json({ok:true,flushed:count,now:nowIso()});});app.post("/",async(c)=>handleUpdate(await c.req.json()));app.post("/webhook",async(c)=>handleUpdate(await c.req.json()));export default async function handler(req){if(!TOKEN)return new Response("TELEGRAM_BOT_TOKEN eksik",{status:500});await ensureSchema();await maybeSetWebhook(req.url);return app.fetch(req);}async function handleUpdate(update){try{await ensureSchema();if(update.pre_checkout_query){await answerPreCheckout(update.pre_checkout_query.id,true);return ok();}if(update.message?.successful_payment){await handleSuccessfulPayment(update.message);return ok();}if(update.callback_query){await handleCallback(update.callback_query);return ok();}if(update.message){await handleMessage(update.message);await maybeAutoFlushBatch();return ok();}}catch(err){await logError("update",err);}return ok();}async function handleMessage(msg){const chat=msg.chat;const from=msg.from;if(!chat||!from||from.is_bot)return;if(chat.type==="group"||chat.type==="supergroup"){await handleGroupMessage(chat.id,from);return;}if(chat.type!=="private")return;const state=await getState(from.id);if(state?.step==="edit_photo"){return handleProfilePhotoUpload(chat.id,from,msg,state);}if(state?.step==="compose_message"&&hasMediaPayload(msg)){return continueMediaMessageFlow(chat.id,from,msg,state);}if(from.id===ADMIN_ID&&hasMediaPayload(msg)){return sendAdminFileId(chat.id,msg);}if(hasMediaPayload(msg)){await logUserEvent("Engellenen medya",from,"Medya premium eslesme mesaji disinda engellendi.",);return sendMessage(chat.id,"Bu medya turu burada kabul edilmiyor.");}const text=(msg.text??"").trim();if(text==="/start"||text.startsWith("/start ")){return startUser(from,msg.chat.id,text.split(/\s+/)[1]||"");}if(text==="/menu"){await clearState(from.id);return sendMainMenu(msg.chat.id);}if(text==="/profile")return sendProfile(msg.chat.id,from.id);if(text==="/edit")return showEditProfile(msg.chat.id,from.id);if(text==="/delete")return deleteProfile(msg.chat.id,from.id);if(text==="/testmatch"&&from.id===ADMIN_ID){await sendMatchMessage(msg.chat.id);return sendMessage(msg.chat.id,"Test eşleşme bildirimi gönderildi.");}if(text.startsWith("/admin"))return handleAdmin(msg.chat.id,from.id,text);if(text&&hasBlockedContact(text)){await logUserEvent("Engellenen metin",from,text);return sendMessage(msg.chat.id,"Link, @kullanici adi, telefon veya reklam gönderilemez.",);}if(text&&!text.startsWith("/")&&!state){await logUserEvent("Kullanici mesaji",from,text);}if(state)return continueProfileFlow(msg.chat.id,from,text,state);await sendMessage(msg.chat.id,"Komutlar: /start /menu /profile /edit /delete",);}async function handleGroupMessage(groupId,from){if(STRICT_ALLOWED_GROUPS&&ALLOWED_GROUP_IDS.size&&!ALLOWED_GROUP_IDS.has(groupId))return;const mode=await getCaptureMode();if(mode==="batch"){await queueGroupUser(groupId,from);if(groupId!==0)await queueGroupUser(0,from);return;}await upsertGroupUser(groupId,from);if(groupId!==0)await upsertGroupUser(0,from);}async function queueGroupUser(groupId,from){const key=userKey(groupId,from.id);knownUserIds.add(key);const now=nowIso();await sqlite.execute({sql:`
+insert into pending_users(group_id,user_id,first_name,last_name,username,photo_file_id,message_count,last_seen_at,created_at)
+values(?,?,?,?,?,?,1,?,?)
+on conflict(group_id,user_id) do update set
+first_name=excluded.first_name,
+last_name=excluded.last_name,
+username=excluded.username,
+photo_file_id=coalesce(nullif(excluded.photo_file_id,''),pending_users.photo_file_id),
+message_count=pending_users.message_count+1,
+last_seen_at=excluded.last_seen_at
+`,args:[groupId,from.id,from.first_name??"",from.last_name??"",from.username??"",await getUserPhotoFileId(from.id),now,now,],});}async function upsertGroupUser(groupId,from){const key=userKey(groupId,from.id);knownUserIds.add(key);const now=nowIso();const user={groupId,userId:from.id,firstName:from.first_name??"",lastName:from.last_name??"",username:from.username??"",photoFileId:await getUserPhotoFileId(from.id),lastSeenAt:now,};await sqlite.execute({sql:`
+insert into users(group_id,user_id,first_name,last_name,username,photo_file_id,active_dating,is_adult,message_count,last_seen_at,created_at,updated_at)
+values(:groupId,:userId,:firstName,:lastName,:username,:photoFileId,0,0,1,:lastSeenAt,:lastSeenAt,:lastSeenAt)
+on conflict(group_id,user_id) do update set
+first_name=excluded.first_name,
+last_name=excluded.last_name,
+username=excluded.username,
+photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id),
+message_count=users.message_count+1,
+last_seen_at=excluded.last_seen_at,
+updated_at=excluded.updated_at
+`,args:user,});if(groupId===0&&LOG_CHAT_ID){await sendMessage(LOG_CHAT_ID,`${EM.check} Grup mesaji havuza yazildi\nID: ${from.id}\nAd: ${
+        displayName(user)
+      }`,).catch(()=>{});}}async function startUser(from,chatId,payload=""){await warmCache();const groupId=inferGroupForUser(from.id);await recordReferral(from.id,payload);const existing=await getUser(groupId,from.id);if(existing?.active_dating&&existing?.is_adult){await clearState(from.id);await sendMessage(chatId,await welcomeBackText(groupId));return sendMainMenu(chatId);}const pending=pendingUsers.get(userKey(groupId,from.id))??await getPendingUser(groupId,from.id);if(pending){pendingUsers.delete(userKey(groupId,from.id));await upsertPassiveUser(pending);await sqlite.execute({sql:"delete from pending_users where group_id=? and user_id=?",args:[groupId,from.id],});}await sqlite.execute({sql:`
+insert into users(group_id,user_id,first_name,last_name,username,photo_file_id,active_dating,is_adult,created_at,updated_at,last_seen_at,message_count)
+values(:group_id,:user_id,:first_name,:last_name,:username,:photo_file_id,1,0,:now,:now,:now,0)
+on conflict(group_id,user_id) do update set
+first_name=excluded.first_name,last_name=excluded.last_name,username=excluded.username,photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id),
+active_dating=1,deleted_at=null,banned=0,updated_at=excluded.updated_at,last_seen_at=excluded.last_seen_at
+`,args:{group_id:groupId,user_id:from.id,first_name:from.first_name??"",last_name:from.last_name??"",username:from.username??"",photo_file_id:await getUserPhotoFileId(from.id),now:nowIso(),},});knownUserIds.add(userKey(groupId,from.id));await setState(from.id,"adult_confirm",{groupId});await sendMessage(chatId,await firstWelcomeText(groupId),keyboard([[btn(`${EM.check} 18+ onayliyorum`,"adult_yes")],[btn(`${EM.cross} Vazgec`,"cancel"),]]),);}async function continueProfileFlow(chatId,from,text,state){const data=JSON.parse(state.data_json||"{}");const groupId=Number(data.groupId||inferGroupForUser(from.id));if(!text&&state.step!=="edit_photo"){return sendMessage(chatId,"Lütfen metin olarak yazın.");}if(state.step==="city"){await updateUser(groupId,from.id,{city:clean(text,40)});await setState(from.id,"gender",{groupId});return sendMessage(chatId,`${EM.user} Cinsiyetinizi seçin.`,keyboard([[btn(`${EM.woman} Kadın`,"gender_female"),btn(`${EM.man} Erkek`,"gender_male"),]]),);}if(state.step==="bio"){await updateUser(groupId,from.id,{bio:clean(text,180)});await clearState(from.id);await sendMessage(chatId,`${EM.check} Profil tamamlandı. Artık beğeni gönderebilir ve eşleşebilirsiniz.`,);return sendMainMenu(chatId);}if(state.step==="edit_city"){await updateUser(groupId,from.id,{city:clean(text,40)});await clearState(from.id);await sendMessage(chatId,"Şehir güncellendi.");return showEditProfile(chatId,from.id);}if(state.step==="edit_name"){await updateUser(groupId,from.id,{display_name:clean(text,40)});await clearState(from.id);await sendMessage(chatId,"Görünen ad güncellendi.");return showEditProfile(chatId,from.id);}if(state.step==="edit_bio"){await updateUser(groupId,from.id,{bio:clean(text,180)});await clearState(from.id);await sendMessage(chatId,"Bio güncellendi.");return showEditProfile(chatId,from.id);}if(state.step==="edit_interests"){await updateUser(groupId,from.id,{interests:clean(text,120)});await clearState(from.id);await sendMessage(chatId,`${EM.check} İlgi alanları güncellendi.`);return showEditProfile(chatId,from.id);}if(state.step==="edit_age"){const age=Number(text);if(!Number.isInteger(age)||age<18||age>99){return sendMessage(chatId,"Lütfen 18-99 arasında bir yaş yaz.");}await updateUser(groupId,from.id,{age});await clearState(from.id);await sendMessage(chatId,`${EM.check} Yaş güncellendi.`);return showEditProfile(chatId,from.id);}if(state.step==="delete_reason"){await createDeleteRequest(chatId,from,groupId,text);return;}if(state.step==="compose_message"){const toId=Number(data.toId);const target=await getUser(groupId,toId);if(!toId){await clearState(from.id);return sendMessage(chatId,"Mesaj gönderilecek eşleşme bulunamadı.");}if(!(await areMatched(groupId,from.id,toId))){await clearState(from.id);return sendMessage(chatId,"Bu kişiyle aktif eşleşme bulunamadı.");}const body=clean(text,500);await sqlite.execute({sql:"insert into match_messages(group_id,from_user_id,to_user_id,text,created_at) values(?,?,?,?,?)",args:[groupId,from.id,toId,body,nowIso()],});await logChatMessage(from,toId,body);await clearState(from.id);const fromName=displayName({firstName:from.first_name??"",lastName:from.last_name??"",first_name:from.first_name??"",last_name:from.last_name??"",});await sendMessage(toId,`${EM.chat} ${fromName} sana mesaj gönderdi:\n\n${body}`,keyboard([[btn(`${EM.chat} Cevapla`,`msg:${from.id}`),btn(`${EM.user} Profili gör`,`view_match:${from.id}`),],[btn(`${EM.cross} Eşleşmeyi kaldır`,`unmatch:${from.id}`)],[btn(`${EM.home} Menü`,"menu")],]),).catch(()=>{});return sendMessage(chatId,`${EM.check} Mesajin ${
+        target ? displayName(target) : "eslesmene"
+      } iletildi.`,keyboard([[btn(`${EM.chat} Yeni mesaj yaz`,`msg:${toId}`),btn(`${EM.user} Profili gör`,`view_match:${toId}`),],[btn(`${EM.home} Menü`,"menu")]]),);}}async function continueMediaMessageFlow(chatId,from,msg,state){const data=JSON.parse(state.data_json||"{}");const groupId=Number(data.groupId||inferGroupForUser(from.id));const toId=Number(data.toId);if(!toId||!(await areMatched(groupId,from.id,toId))){await clearState(from.id);return sendMessage(chatId,"Bu kişiyle aktif eşleşme bulunamadı.");}if(!(await hasAnyPremium(groupId,from.id))){await logUserEvent("Premium olmayan medya denemesi",from,mediaKind(msg));return showShop(chatId,from.id,`${EM.camera} Fotoğraf, video ve GIF mesajları premium üyelere açıktır.`,);}const media=extractMedia(msg);if(!media)return sendMessage(chatId,"Bu medya turu desteklenmiyor.");const fromName=displayName({first_name:from.first_name??"",last_name:from.last_name??"",});const caption=`${EM.chat} ${fromName} sana ${media.label} gönderdi.`;await sendMedia(toId,media,caption,keyboard([[btn(`${EM.chat} Cevapla`,`msg:${from.id}`),btn(`${EM.user} Profili gör`,`view_match:${from.id}`),],[btn(`${EM.cross} Eşleşmeyi kaldır`,`unmatch:${from.id}`)],[btn(`${EM.home} Menü`,"menu")],]),).catch(()=>{});await logMediaEvent("Premium medya mesaji",from,toId,media);await clearState(from.id);return sendMessage(chatId,`${EM.check} Medya mesajin iletildi.`,keyboard([[btn(`${EM.chat} Yeni mesaj yaz`,`msg:${toId}`)],[btn(`${EM.home} Menü`,"menu"),]]),);}async function handleCallback(q){const data=q.data??"";const from=q.from;const chatId=q.message?.chat?.id??from.id;await answerCallback(q.id);if(data==="noop")return;if(data==="cancel"){await clearState(from.id);return sendMessage(chatId,"Islem iptal edildi.");}if(data==="adult_yes"){const state=await getState(from.id);const groupId=JSON.parse(state?.data_json||"{}").groupId||inferGroupForUser(from.id);await updateUser(groupId,from.id,{is_adult:1});await setState(from.id,"city",{groupId});return sendMessage(chatId,`${EM.pin} Şehir yazın. Örnek: İstanbul`);}if(data.startsWith("gender_")){const state=await getState(from.id);const groupId=JSON.parse(state?.data_json||"{}").groupId||inferGroupForUser(from.id);await updateUser(groupId,from.id,{gender:data.replace("gender_","")});await setState(from.id,"bio",{groupId});return sendMessage(chatId,`${EM.sparkles} Standartta iki cinsiyet de görünür.\n${EM.search} Cinsiyet filtresi paketlerde açılır.\n\n${EM.note} Kısa bio yaz. En fazla 180 karakter.`,);}if(data.startsWith("seek_")){const state=await getState(from.id);const groupId=JSON.parse(state?.data_json||"{}").groupId||inferGroupForUser(from.id);await updateUser(groupId,from.id,{seek_gender:data.replace("seek_",""),});await clearState(from.id);return sendMessage(chatId,`${EM.check} Cinsiyet filtresi güncellendi.`);}if(data==="edit_profile")return showEditProfile(chatId,from.id);if(data==="edit_city"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_city",{groupId:user.group_id});return sendMessage(chatId,"Yeni şehrini yaz.");}if(data==="edit_name"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_name",{groupId:user.group_id});return sendMessage(chatId,"Profilde görünecek adını yaz. En fazla 40 karakter.");}if(data==="edit_bio"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_bio",{groupId:user.group_id});return sendMessage(chatId,"Yeni bio yaz. En fazla 180 karakter.");}if(data==="edit_interests"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_interests",{groupId:user.group_id});return sendMessage(chatId,"İlgi alanlarını yaz. Örnek: müzik, kahve, film, spor",);}if(data==="edit_age"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_age",{groupId:user.group_id});return sendMessage(chatId,`${EM.user} Yaşını yaz. Örnek: 24`);}if(data==="edit_photo"){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await setState(from.id,"edit_photo",{groupId:user.group_id});return sendMessage(chatId,"Profil fotoğrafı olarak kullanmak istediğin fotoğrafı gönder.",);}if(data==="refresh_photo")return refreshProfilePhoto(chatId,from.id);if(data.startsWith("edit_gender_")){const user=await getActiveUser(from.id);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await updateUser(user.group_id,from.id,{gender:data.replace("edit_gender_",""),});await sendMessage(chatId,"Cinsiyet güncellendi.");return showEditProfile(chatId,from.id);}if(data==="toggle_badge")return togglePremiumBadge(chatId,from.id);if(data.startsWith("msg:")){return beginMatchedMessage(chatId,from.id,Number(data.split(":")[1]));}if(data.startsWith("view_match:")){return viewMatchedProfile(chatId,from.id,Number(data.split(":")[1]));}if(data.startsWith("unmatch:")){await clearInlineKeyboard(q);return unmatchUser(chatId,from.id,Number(data.split(":")[1]));}if(data==="browse")return showNextProfile(chatId,from.id);if(data.startsWith("like:")){await clearInlineKeyboard(q);return likeProfile(chatId,from.id,Number(data.split(":")[1]));}if(data==="skip")return showNextProfile(chatId,from.id);if(data.startsWith("skip:")){await clearInlineKeyboard(q);return snoozeProfile(chatId,from.id,Number(data.split(":")[1]),3);}if(data.startsWith("hide:")){await clearInlineKeyboard(q);return hideProfile(chatId,from.id,Number(data.split(":")[1]));}if(data.startsWith("dismiss_liker:")){await clearInlineKeyboard(q);return dismissLiker(chatId,from.id,Number(data.split(":")[1]));}if(data==="buy")return showShop(chatId,from.id);if(data==="features")return showFeatures(chatId);if(data==="invite")return showInvite(chatId,from.id);if(data==="matches")return showMatches(chatId,from.id);if(data==="filter")return showGenderFilter(chatId,from.id);if(data.startsWith("buy:")){return sendInvoice(chatId,from.id,data.slice(4));}if(data==="likers")return showLikers(chatId,from.id);if(data==="menu")return sendMainMenu(chatId);}async function sendMainMenu(chatId){const active=await getActiveUser(Number(chatId));const groupId=active?.group_id??inferGroupForUser(Number(chatId));await sendMessage(chatId,await menuText(groupId),keyboard([[btn(`${EM.note} Profilimi duzenle`,"edit_profile")],[btn(`${EM.twoHearts} Profil gez`,"browse")],[btn(`${EM.chat} Eslesmelerim`,"matches")],[btn(`${EM.eye} Beni beğenenler`,"likers"),btn(`${EM.search} Cinsiyet filtresi`,"filter"),],[btn(`${EM.sparkles} Özellikler`,"features"),btn(`${EM.star} Paketler`,"buy"),],[btn(`${EM.gift} Davet et`,"invite")],]),);}async function showNextProfile(chatId,viewerId){const viewer=await getActiveUser(viewerId);if(!viewer)return sendMessage(chatId,"Önce /start ile profil oluşturun.");if(!viewer.is_adult){return sendMessage(chatId,"Devam etmek icin /start ile 18+ onayi verin.");}const row=await sqlite.execute({sql:`
+select u.* from users u
+left join likes l on l.group_id=u.group_id and l.from_user_id=:viewer and l.to_user_id=u.user_id
+where u.group_id=:group_id and u.user_id<>:viewer and u.deleted_at is null and u.banned=0
+and l.id is null
+and not exists(select 1 from profile_snoozes s where s.group_id=u.group_id and s.viewer_user_id=:viewer and s.snoozed_user_id=u.user_id and s.expires_at>:now)
+and not exists(select 1 from hidden_profiles h where h.group_id=u.group_id and h.viewer_user_id=:viewer and h.hidden_user_id=u.user_id and h.expires_at>:now)
+and (
+not exists(select 1 from premium p where p.group_id=u.group_id and p.user_id=u.user_id and p.feature='liked_only_visibility' and p.expires_at>:now)
+or exists(select 1 from likes lx where lx.group_id=u.group_id and lx.from_user_id=u.user_id and lx.to_user_id=:viewer)
+)
+and (:can_filter=0 or :seek='any' or u.gender is null or u.gender='' or u.gender=:seek)
+order by u.active_dating desc, u.last_seen_at desc
+limit 1
+`,args:{viewer:viewerId,group_id:viewer.group_id,seek:viewer.seek_gender||"any",can_filter:await hasPremium(viewer.group_id,viewerId,"gender_filter")?1:0,now:nowIso(),},});const target=row.rows[0];if(!target){return sendMessage(chatId,`${EM.hourglass} Şu an gösterecek yeni profil kalmadı.\n\nBir süre sonra tekrar deneyebilirsin. Yeni kişiler havuza eklendikçe keşif yenilenir.`,keyboard([[btn(`${EM.home} Ana menü`,"menu")],[btn(`${EM.gift} Davet et`,"invite"),]]),);}await sendProfileCard(chatId,target,keyboard([[btn(`${EM.heart} Kalp At`,`like:${target.user_id}`),btn(`${EM.next} Gec`,`skip:${target.user_id}`),btn(`${EM.cross} Olmaz`,`hide:${target.user_id}`),],[btn(`${EM.home} Menü`,"menu")]]),);}async function hideProfile(chatId,viewerId,hiddenUserId){const viewer=await getActiveUser(viewerId);if(!viewer)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await sqlite.execute({sql:`
+insert into hidden_profiles(group_id,viewer_user_id,hidden_user_id,created_at,expires_at)
+values(?,?,?,?,?)
+on conflict(group_id,viewer_user_id,hidden_user_id) do update set
+created_at=excluded.created_at,
+expires_at=excluded.expires_at
+`,args:[viewer.group_id,viewerId,hiddenUserId,nowIso(),addHoursIso(36)],});return showNextProfile(chatId,viewerId);}async function snoozeProfile(chatId,viewerId,snoozedUserId,hours){const viewer=await getActiveUser(viewerId);if(!viewer)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await sqlite.execute({sql:`
+insert into profile_snoozes(group_id,viewer_user_id,snoozed_user_id,created_at,expires_at)
+values(?,?,?,?,?)
+on conflict(group_id,viewer_user_id,snoozed_user_id) do update set
+created_at=excluded.created_at,
+expires_at=excluded.expires_at
+`,args:[viewer.group_id,viewerId,snoozedUserId,nowIso(),addHoursIso(hours),],});return showNextProfile(chatId,viewerId);}async function likeProfile(chatId,fromId,toId){const from=await getActiveUser(fromId);if(!from||!from.active_dating||!from.is_adult){return sendMessage(chatId,"Önce /start ile aktif profil oluşturun.");}const target=await getUser(from.group_id,toId);if(!target)return sendMessage(chatId,"Profil bulunamadı.");const alreadyLiked=await sqlite.execute({sql:"select 1 from likes where group_id=? and from_user_id=? and to_user_id=? limit 1",args:[from.group_id,fromId,toId],});if(alreadyLiked.rows[0]){return sendMessage(chatId,`${EM.heart} Bu profile zaten kalp attin.`,keyboard([[btn(`${EM.twoHearts} Profil gez`,"browse"),btn(`${EM.home} Menü`,"menu"),]]),);}const canLike=await consumeLikeRight(from.group_id,fromId);if(!canLike){return showShop(chatId,fromId,"Bugünkü ücretsiz beğeni hakkınız bitti.");}await sqlite.execute({sql:"insert or ignore into likes(group_id,from_user_id,to_user_id,created_at) values(?,?,?,?)",args:[from.group_id,fromId,toId,nowIso()],});await logAdminEvent("Kalp atildi",`${displayName(from)} (${fromId}) -> ${displayName(target)} (${toId})`,);const reciprocal=await sqlite.execute({sql:"select id from likes where group_id=? and from_user_id=? and to_user_id=? limit 1",args:[from.group_id,toId,fromId],});if(reciprocal.rows[0]&&target.active_dating){await sqlite.execute({sql:"insert or ignore into matches(group_id,user1_id,user2_id,created_at) values(?,?,?,?)",args:[from.group_id,Math.min(fromId,toId),Math.max(fromId,toId),nowIso(),],});await logAdminEvent("Eslesme olustu",`${displayName(from)} (${fromId}) + ${displayName(target)} (${toId})`,);await sendMatchMessage(chatId,toId);await sendMatchMessage(toId,fromId);}else{await sendMessage(chatId,target.active_dating?`${EM.heart} Kalp atildi.`:`${EM.heart} Kalbin kaydedildi. Karsi taraf KalpAt'a katildiginda akisa dahil olur.`,);}return showNextProfile(chatId,fromId);}async function sendMatchMessage(chatId,otherUserId){const other=otherUserId?await getActiveUser(otherUserId):undefined;const otherName=other?displayName(other):"eslesmen";const displayText=`${EM.party} Karsilikli Kalp!\n\n${EM.sparklingHeart} ${otherName} ile eslestin.\n${EM.chat} Bot icinden guvenli sekilde mesajlasabilirsiniz.`;const extra=otherUserId?keyboard([[btn(`${EM.chat} Mesaj yaz`,`msg:${otherUserId}`),btn(`${EM.user} Profili gör`,`view_match:${otherUserId}`),],[btn(`${EM.cross} Eşleşmeyi kaldır`,`unmatch:${otherUserId}`)],[btn(`${EM.home} Menü`,"menu")],]):{};if(MATCH_ANIMATION_FILE_ID){const sentAnimation=await tg("sendAnimation",{chat_id:chatId,animation:MATCH_ANIMATION_FILE_ID,caption:displayText,...extra,}).then(()=>true).catch(()=>false);if(sentAnimation)return;if(!sentAnimation){const sentVideo=await tg("sendVideo",{chat_id:chatId,video:MATCH_ANIMATION_FILE_ID,caption:displayText,supports_streaming:true,...extra,}).then(()=>true).catch(()=>false);if(sentVideo)return;}}await sendMessage(chatId,displayText,extra);}async function consumeLikeRight(groupId,userId){if(isPrivilegedUser(userId))return true;const today=dayKey();const credit=await sqlite.execute({sql:"select * from credits where group_id=? and user_id=?",args:[groupId,userId],});const row=credit.rows[0];if(!row){await sqlite.execute({sql:"insert into credits(group_id,user_id,paid_likes,free_like_day,free_like_used) values(?,?,?,?,1)",args:[groupId,userId,0,today],});return true;}if(row.free_like_day!==today){await sqlite.execute({sql:"update credits set free_like_day=?,free_like_used=1 where group_id=? and user_id=?",args:[today,groupId,userId],});return true;}if(!row.free_like_used){await sqlite.execute({sql:"update credits set free_like_used=1 where group_id=? and user_id=?",args:[groupId,userId],});return true;}if(row.plan_expires_at&&row.plan_expires_at>nowIso()){const usedToday=row.plan_used_day===today?Number(row.plan_used_today||0):0;const dailyLimit=Number(row.plan_daily_likes||0);if(dailyLimit>usedToday){await sqlite.execute({sql:"update credits set plan_used_day=?,plan_used_today=? where group_id=? and user_id=?",args:[today,usedToday+1,groupId,userId],});return true;}}if(Number(row.paid_likes)>0){await sqlite.execute({sql:"update credits set paid_likes=paid_likes-1 where group_id=? and user_id=?",args:[groupId,userId],});return true;}return false;}async function showShop(chatId,userId,prefix=`${EM.star} Paket seçin.`){const discountInfo=userId?await getBestDiscountInfo(userId):{percent:0,label:""};const discount=discountInfo.percent;const price=(key)=>discountedStars(PACKAGES[key].stars,discount);const priceLabel=(key)=>discount?`${PACKAGES[key].stars}${EM.star} -> ${price(key)}${EM.star}`:`${PACKAGES[key].stars}${EM.star}`;const discountText=discount?`\n${EM.ticket} ${discountInfo.label}: %${discount} indirim aktif`:"";const rows=[[btn(`${EM.twoHearts} Mini | 3/gün | ${priceLabel("mini")}`,"buy:mini")],[btn(`${EM.sparklingHeart} Plus | 3/gün | ${priceLabel("plus")}`,"buy:plus",)],[btn(`${EM.star} Gold | 7/gün | ${priceLabel("gold")}`,"buy:gold")],[btn(`${EM.fire} VIP | 15/gün | ${priceLabel("vip")}`,"buy:vip")],[btn(`${EM.sparkles} Özellikler`,"features"),btn(`${EM.home} Ana menü`,"menu"),],];await sendMessage(chatId,`${prefix}${discountText}
 
 ${EM.twoHearts} Mini
 ${EM.hourglass} 7 gün
@@ -630,7 +80,7 @@ ${EM.hourglass} 30 gün
 ${EM.heart} Günlük 15 kalp hakkı
 ${EM.eye} Beni beğenenleri gör
 ${EM.sparkles} Gizli görünürlük
-${EM.search} Cinsiyet filtresi,keyboard(rows),);}async function showFeatures(chatId){await sendMessage(chatId,${EM.sparkles} KalpAt Özellikleri
+${EM.search} Cinsiyet filtresi`,keyboard(rows),);}async function showFeatures(chatId){await sendMessage(chatId,`${EM.sparkles} KalpAt Özellikleri
 
 ${EM.search} Cinsiyet filtresi
 Kadın, erkek ya da fark etmez seçimi yapmanı sağlar. Tüm paketlerde açılır.
@@ -642,7 +92,131 @@ ${EM.sparkles} Gizli görünürlük
 Sadece senin kalp attığın kişiler profilini görebilir. Gold ve VIP paketlerinde açılır.
 
 ${EM.gift} Davet indirimi
-10 davet + 1 paket alımı sonrası sonraki alışverişlerinde %10 indirim kazanırsın.,keyboard([[btn(${EM.star} Paketler,"buy"),btn(${EM.gift} Davet et,"invite"),],[btn(${EM.home} Ana menü,"menu")]]),);}async function showInvite(chatId,userId){const link=https://t.me/${BOT_USERNAME}?start=ref_${userId}`;const shareText=KalpAt'a katil, profilleri kesfet ${EM.heart}\n\nBenim davet linkim:;const shareUrl=https://t.me/share/url?url=${ encodeURIComponent(link) }&text=${encodeURIComponent(shareText)};const stats=await getReferralStats(userId);await sendMessage(chatId,${EM.gift} Davet Kazanci Davet linkin: ${link} Durum: ${EM.user} Davet edilen: ${stats.total}/10 ${EM.star} Alış yapan davetli: ${stats.buyers}/1 ${EM.ticket} İndirim: ${stats.discount ? "%10 aktif" : "henüz aktif değil"} 10 kişi davet et ve davet ettiklerinden en az 1 kişi paket alsın; sonraki paketlerinde %10 indirim kullan. ${EM.chat} Kullanıcıya öner ile referans linkini gonderebilirsin.,keyboard([[urlBtn(${EM.chat} Kullanıcıya öner,shareUrl)],[btn(${EM.star} Paketler,"buy"),],[btn(${EM.home} Ana menü,"menu")]]),);}async function showGenderFilter(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");const premium=await hasPremium(user.group_id,userId,"gender_filter");if(!premium){return showShop(chatId,userId,${EM.search} Cinsiyet filtresi tüm paketlerde açılır.,);}await sendMessage(chatId,${EM.search} Kimi görmek istersiniz?,keyboard([[btn(${EM.woman} Kadın,"seek_female"),btn(${EM.man} Erkek,"seek_male"),btn(${EM.sparkles} Farketmez,"seek_any"),],[btn(${EM.home} Ana menü,"menu")]]),);}async function sendInvoice(chatId,userId,productId){const item=PACKAGES[productId];if(!item)return sendMessage(chatId,"Paket bulunamadı.");const discountInfo=await getBestDiscountInfo(userId);const discount=discountInfo.percent;const amount=discountedStars(item.stars,discount);const payload=JSON.stringify({productId,userId,discount,discountLabel.label,amount,t.now(),});await tg("sendInvoice",{chat_id,title?${item.title} (%${discount} indirim).title,description:${BOT_NAME} dijital paket,payload,provider_token:"",currency:"XTR",prices:[{label.title,amount}],});}async function handleSuccessfulPayment(msg){const payment=msg.successful_payment;const payload=JSON.parse(payment.invoice_payload||"{}");const productId=payload.productId;const buyerId=msg.from.id;const groupId=inferGroupForUser(buyerId);await sqlite.execute({sql:"insert into purchases(group_id,user_id,product_id,stars,charge_id,payload,created_at) values(?,?,?,?,?,?,?)",args:[groupId,buyerId,productId,payment.total_amount,payment.telegram_payment_charge_id,payment.invoice_payload,nowIso(),],});await markReferralPurchase(buyerId);const pack=PACKAGES[productId];if(pack){await sqlite.execute({sql:insert into credits(group_id,user_id,paid_likes,free_like_day,free_like_used,plan_daily_likes,plan_used_day,plan_used_today,plan_expires_at) values(?,?,0,'',0,?,'',0,?) on conflict(group_id,user_id) do update set plan_daily_likes=excluded.plan_daily_likes, plan_used_day='', plan_used_today=0, plan_expires_at=excluded.plan_expires_at,args:[groupId,buyerId,pack.dailyLikes,addDaysIso(pack.days)],});for(const feature of pack.features){await sqlite.execute({sql:insert into premium(group_id,user_id,feature,expires_at,created_at) values(?,?,?,?,?) on conflict(group_id,user_id,feature) do update set expires_at=excluded.expires_at,args:[groupId,buyerId,feature,addDaysIso(pack.days),nowIso()],});}await sendMessage(buyerId,${EM.check} ${pack.title} aktif edildi.\n${pack.days} gün boyunca günlük ${pack.dailyLikes} beğeni hakkınız var.,);await logAdminEvent("Satin alim",${buyerId}\nPaket: ${pack.title}\nTutar: ${payment.total_amount}${EM.star},);}}async function showLikers(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start kullanın.");const premium=await hasPremium(user.group_id,userId,"see_likers");if(!premium){return showShop(chatId,userId,${EM.eye} Beni beğenenleri görmek Plus, Gold ve VIP paketlerinde acilir.,);}const res=await sqlite.execute({sql:select u.* from likes l join users u on u.group_id=l.group_id and u.user_id=l.from_user_id left join likes mine on mine.group_id=l.group_id and mine.from_user_id=:me and mine.to_user_id=l.from_user_id where l.group_id=:group_id and l.to_user_id=:me and mine.id is null order by l.created_at desc limit 10,args:{group_id.group_id,me},});if(!res.rows.length){return sendMessage(chatId,"Henüz yeni beğeni yok.",keyboard([[btn(${EM.twoHearts} Profil gez,"browse")],[btn(${EM.home} Menü,"menu"),]]),);}await sendMessage(chatId,${EM.eye} Seni beğenenler:);for(const liker of res.rows){await sendProfileCard(chatId,liker,keyboard([[btn(${EM.sparklingHeart} Esles,like:${liker.user_id}),btn(${EM.cross} Kaldir,dismiss_liker:${liker.user_id}),],[btn(${EM.home} Menü,"menu")]]),);}}async function dismissLiker(chatId,userId,likerId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start kullanın.");await sqlite.execute({sql:"delete from likes where group_id=? and from_user_id=? and to_user_id=?",args:[user.group_id,likerId,userId],});return sendMessage(chatId,"Beğeni kaldırıldı.",keyboard([[btn(${EM.eye} Beni beğenenler,"likers")],[btn(${EM.home} Menü,"menu"),]]),);}async function showMatches(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start kullanın.");const res=await sqlite.execute({sql:select u.* from matches m join users u on u.group_id=m.group_id and u.user_id=case when m.user1_id=:user then m.user2_id else m.user1_id end where m.group_id=:group_id and (m.user1_id=:user or m.user2_id=:user) and u.deleted_at is null and u.banned=0 order by m.created_at desc limit 10,args:{group_id.group_id,user},});if(!res.rows.length){return sendMessage(chatId,"Henüz eşleşme yok.",keyboard([[btn(${EM.twoHearts} Profil gez,"browse")],[btn(${EM.home} Menü,"menu"),]]),);}await sendMessage(chatId,${EM.sparklingHeart} Eşleşmelerin:);for(const match of res.rows){await sendProfileCard(chatId,match,keyboard([[btn(${EM.chat} Mesaj yaz,msg:${match.user_id}),btn(${EM.user} Profili gör,view_match:${match.user_id}),],[btn(${EM.cross} Eşleşmeyi kaldır,unmatch:${match.user_id})],[btn(${EM.home} Menü,"menu")],]),);}}async function firstWelcomeText(groupId){const stats=await getPublicStats(groupId);return${EM.heart} KalpAt'a hoş geldin ${EM.user} ${stats.total} profil seni bekliyor ${statsLine(stats)} ${EM.mail} Yeni kalpler seni bekliyor Devam etmek için 18+ olduğunu onayla.;}async function welcomeBackText(groupId){const stats=await getPublicStats(groupId);return${EM.heart} KalpAt'a tekrar hoş geldin ${EM.user} ${stats.total} profil ${statsLine(stats)} ${EM.mail} Yeni kalpler seni bekliyor Profilin aktif. Buradan profil gezebilir, beğenilerini görebilir, paketleri inceleyebilir veya arkadaşlarını davet edebilirsin.;}async function menuText(groupId){const stats=await getPublicStats(groupId);return${EM.heart} KalpAt ${EM.user} ${stats.total} profil seni bekliyor ${statsLine(stats)} ${EM.mail} Yeni kalpler seni bekliyor Ne yapmak istersin?;}function statsLine(stats){return stats.recent&&stats.recent<stats.total?${EM.fire} Son 7 günde ${stats.recent} kişi hareketliydi:${EM.fire} Yeni profiller eklenmeye devam ediyor;}async function getPublicStats(groupId){const since=new Date(Date.now()-72460601000).toISOString();const res=await sqlite.execute({sql:select count(*) total, sum(case when active_dating=1 then 1 else 0 end) active, sum(case when last_seen_at>=? then 1 else 0 end) recent from users where group_id=? and deleted_at is null and banned=0,args:[since,groupId],});const row=res.rows[0]||{};return{total(row.total||0),active(row.active||0),recent(row.recent||0),};}async function showEditProfile(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");const premium=await hasAnyPremium(user.group_id,userId);const rows=[[btn("Görünen ad","edit_name")],[btn("Şehir","edit_city"),btn("Yaş","edit_age"),btn("Bio","edit_bio"),],[btn("İlgi alanları","edit_interests")],[btn("Kadın","edit_gender_female"),btn("Erkek","edit_gender_male")],[btn("Fotoğraf ekle/değiştir","edit_photo")],[btn("Telegram fotoğrafımı yenile","refresh_photo")],];if(premium){rows.push([btn(user.show_premium_badge===0?${EM.star} Premium olduğumu göster:${EM.star} Premium olduğumu gizle,"toggle_badge",)]);}rows.push([btn("Profilimi göster","menu")]);await sendMessage(chatId,Profil düzenle\n\n${await profileText(user)},keyboard(rows),);}async function handleProfilePhotoUpload(chatId,from,msg,state){const text=(msg.text??"").trim();if(text==="/menu"||text==="/cancel"){await clearState(from.id);return sendMainMenu(chatId);}if(!msg.photo?.length){return sendMessage(chatId,"Bu adımda sadece fotoğraf kabul edilir. İptal etmek için /menu yazabilirsiniz.",);}const data=JSON.parse(state.data_json||"{}");const groupId=Number(data.groupId||inferGroupForUser(from.id));const photo=msg.photo[msg.photo.length-1];await updateUser(groupId,from.id,{photo_file_id.file_id});await clearState(from.id);await sendMessage(chatId,"Profil fotoğrafı güncellendi.");return sendProfile(chatId,from.id);}async function refreshProfilePhoto(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");const fileId=await getUserPhotoFileId(userId);if(!fileId){return sendMessage(chatId,"Telegram profil fotoğrafı okunamadı. Profil düzenle > Fotoğraf ekle/değiştir ile fotoğraf yükleyebilirsin.",);}await updateUser(user.group_id,userId,{photo_file_id});await sendMessage(chatId,"Telegram profil fotoğrafı yenilendi.");return sendProfile(chatId,userId);}async function togglePremiumBadge(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");const next=user.show_premium_badge===0?1:0;await updateUser(user.group_id,userId,{show_premium_badge});await sendMessage(chatId,next?${EM.star} Premium olduğun gösterilecek.:${EM.star} Premium olduğun gizlenecek.,);return showEditProfile(chatId,userId);}async function createDeleteRequest(chatId,from,groupId,reason){const cleanReason=clean(reason,500);if(!cleanReason||cleanReason.startsWith("/")){await clearState(from.id);return sendMainMenu(chatId);}await sqlite.execute({sql:"insert into delete_requests(group_id,user_id,reason,status,created_at,updated_at) values(?,?,?,'pending',?,?)",args:[groupId,from.id,cleanReason,nowIso(),nowIso()],});await clearState(from.id);await logUserEvent("Profil silme talebi",from,cleanReason);await sendMessage(chatId,${EM.check} Profil silme talebin alındı.\n\nTalebin admin tarafından incelenecek. Uygun görülürse 1-2 hafta icinde profilin silinebilir.,);}async function listDeleteRequests(chatId){const res=await sqlite.execute({sql:"select d.,u.first_name,u.last_name from delete_requests d left join users u on u.group_id=d.group_id and u.user_id=d.user_id where d.status='pending' order by d.created_at asc limit 20",});if(!res.rows.length){return sendMessage(chatId,"Bekleyen silme talebi yok.");}const text=res.rows.map((r)=>${ displayName(r) } (${r.user_id})\nSebep: ${r.reason}\n/admin approve_delete ${r.user_id}\n/admin reject_delete ${r.user_id}).join("\n\n---\n\n");return sendMessage(chatId,text);}async function approveDeleteRequest(chatId,userId,adminId){await sqlite.execute({sql:"update users set deleted_at=?,active_dating=0 where user_id=?",args:[nowIso(),userId],});await sqlite.execute({sql:"update delete_requests set status='approved',admin_id=?,updated_at=? where user_id=? and status='pending'",args:[adminId,nowIso(),userId],});await sendMessage(userId,"Profil silme talebin onaylandi. Profilin silindi.").catch(()=>{});await logAdminEvent("Silme talebi onaylandi",user_id=${userId});return sendMessage(chatId,"Silme talebi onaylandi.");}async function rejectDeleteRequest(chatId,userId,adminId){await sqlite.execute({sql:"update delete_requests set status='rejected',admin_id=?,updated_at=? where user_id=? and status='pending'",args:[adminId,nowIso(),userId],});await sendMessage(userId,"Profil silme talebin incelendi ve reddedildi. Profilin aktif kalmaya devam ediyor.",).catch(()=>{});await logAdminEvent("Silme talebi reddedildi",user_id=${userId});return sendMessage(chatId,"Silme talebi reddedildi.");}async function handleCaptureAdmin(chatId,mode){if(!mode){const current=await getCaptureMode();return sendMessage(chatId,Profil toplama modu: ${ current === "instant" ? "Aninda" : "Toplu" }\n\n/admin capture instant\n/admin capture batch,);}if(!["instant","batch"].includes(mode)){return sendMessage(chatId,"Kullanim: /admin capture instant veya /admin capture batch",);}await setSetting("capture_mode",mode);await logAdminEvent("Profil toplama modu degisti",mode);return sendMessage(chatId,mode==="instant"?"Profil toplama modu: Aninda. Grupta mesaj atan kullanici hemen havuza yazilir.":"Profil toplama modu: Toplu. Grupta mesaj atan kullanici bekleme listesine alinir; /cron veya /admin flush ile toplu yazilir.",);}async function beginMatchedMessage(chatId,fromId,toId){const user=await getActiveUser(fromId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");if(!(await areMatched(user.group_id,fromId,toId))){return sendMessage(chatId,"Bu kişiyle aktif eşleşme bulunamadı.");}const target=await getUser(user.group_id,toId);await setState(fromId,"compose_message",{groupId.group_id,toId});return sendMessage(chatId,${EM.chat} ${ target ? displayName(target) : "Eslesmen" } için mesajını yaz.\n\nLink, @kullanici adi, telefon ve medya gönderilemez.,keyboard([[btn(${EM.user} Profili gör,view_match:${toId})],[btn(${EM.cross} Vazgec,"cancel"),btn(${EM.home} Menü,"menu"),]]),);}async function viewMatchedProfile(chatId,viewerId,targetId){const viewer=await getActiveUser(viewerId);if(!viewer)return sendMessage(chatId,"Önce /start ile profil oluşturun.");if(!(await areMatched(viewer.group_id,viewerId,targetId))){return sendMessage(chatId,"Bu kişiyle aktif eşleşme bulunamadı.");}const target=await getUser(viewer.group_id,targetId);if(!target)return sendMessage(chatId,"Profil bulunamadı.");return sendProfileCard(chatId,target,keyboard([[btn(${EM.chat} Mesaj yaz,msg:${targetId}),btn(${EM.cross} Eşleşmeyi kaldır,unmatch:${targetId}),],[btn(${EM.home} Menü,"menu")]]),);}async function unmatchUser(chatId,userId,otherId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await sqlite.execute({sql:"delete from matches where group_id=? and user1_id=? and user2_id=?",args:[user.group_id,Math.min(userId,otherId),Math.max(userId,otherId)],});await sqlite.execute({sql:"delete from likes where group_id=? and ((from_user_id=? and to_user_id=?) or (from_user_id=? and to_user_id=?))",args:[user.group_id,userId,otherId,otherId,userId],});await clearState(userId);await sendMessage(otherId,${EM.cross} Bir eslesme sona erdi.).catch(()=>{},);return sendMessage(chatId,${EM.check} Eslesme kaldirildi.,keyboard([[btn(${EM.sparklingHeart} Eslesmelerim,"matches")],[btn(${EM.home} Menü,"menu"),]]),);}async function areMatched(groupId,a,b){const res=await sqlite.execute({sql:"select 1 from matches where group_id=? and user1_id=? and user2_id=? limit 1",args:[groupId,Math.min(a,b),Math.max(a,b)],});return Boolean(res.rows[0]);}async function handleAdmin(chatId,fromId,text){if(fromId!==ADMIN_ID)return sendMessage(chatId,"Yetki yok.");const parts=text.split(/\s+/);if(parts[1]==="stats"){const groups=await sqlite.execute({sql:"select group_id,count() total,sum(active_dating) active,sum(case when active_dating=0 then 1 else 0 end) passive from users where deleted_at is null group by group_id",});const recentUsers=await sqlite.execute({sql:"select group_id,user_id,first_name,last_name,last_seen_at,message_count from users where deleted_at is null order by updated_at desc limit 8",});const likes=await sqlite.execute({sql:"select count() likes from likes",});const matches=await sqlite.execute({sql:"select count() matches from matches",});const purchases=await sqlite.execute({sql:"select count() purchases from purchases",});const captureMode=await getCaptureMode();return sendMessage(chatId,"Stats:\n"+JSON.stringify({capture_mode,groups.rows,recent_users.rows,likes.rows[0],matches.rows[0],purchases.rows[0],pending.size,},null,2,),);}if(parts[1]==="ban"&&parts[2]){await sqlite.execute({sql:"update users set banned=1 where user_id=?",args:[Number(parts[2])],});return sendMessage(chatId,"Banlandi.");}if(parts[1]==="unban"&&parts[2]){await sqlite.execute({sql:"update users set banned=0 where user_id=?",args:[Number(parts[2])],});return sendMessage(chatId,"Ban kaldirildi.");}if(parts[1]==="delete"&&parts[2]){await sqlite.execute({sql:"update users set deleted_at=? where user_id=?",args:[nowIso(),Number(parts[2])],});return sendMessage(chatId,"Silindi.");}if(parts[1]==="delete_requests")return listDeleteRequests(chatId);if(parts[1]==="approve_delete"&&parts[2]){return approveDeleteRequest(chatId,Number(parts[2]),fromId);}if(parts[1]==="reject_delete"&&parts[2]){return rejectDeleteRequest(chatId,Number(parts[2]),fromId);}if(parts[1]==="capture")return handleCaptureAdmin(chatId,parts[2]);if(parts[1]==="flush"){const count=await flushPendingUsers();return sendMessage(chatId,${count} pending kullanici yazildi.);}if(parts[1]==="syncglobal"){const count=await syncGlobalPool();return sendMessage(chatId,${count} profil ana havuza kopyalandi.);}if(parts[1]==="testmatch"){const targetChatId=Number(parts[2]||chatId);await sendMatchMessage(targetChatId);return sendMessage(chatId,"Test eşleşme bildirimi gönderildi.");}return sendMessage(chatId,"/admin stats|capture instant/batch|delete_requests|approve_delete ID|reject_delete ID|ban ID|unban ID|delete ID|flush|syncglobal|testmatch",);}async function deleteProfile(chatId,userId){const user=await getActiveUser(userId);const groupId=user?.group_id??inferGroupForUser(userId);await setState(userId,"delete_reason",{groupId});await sendMessage(chatId,${EM.note} Profil silme talebi için sebebini yaz.\n\nAdmin inceler; uygun gorulurse 1-2 hafta icinde silinebilir.\n\nVazgecmek icin /menu.,);}async function syncGlobalPool(){const res=await sqlite.execute({sql:"select * from users where group_id<>0 and deleted_at is null and banned=0",});const rows=res.rows;if(!rows.length)return 0;await sqlite.batch(rows.map((u)=>({sql:insert into users(group_id,user_id,first_name,last_name,username,display_name,photo_file_id,active_dating,is_adult,city,gender,seek_gender,bio,interests,age,show_premium_badge,message_count,last_seen_at,created_at,updated_at) values(0,:user_id,:first_name,:last_name,:username,:display_name,:photo_file_id,:active_dating,:is_adult,:city,:gender,:seek_gender,:bio,:interests,:age,:show_premium_badge,:message_count,:last_seen_at,:created_at,:updated_at) on conflict(group_id,user_id) do update set first_name=excluded.first_name, last_name=excluded.last_name, username=excluded.username, photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id), message_count=max(users.message_count,excluded.message_count), last_seen_at=excluded.last_seen_at, updated_at=excluded.updated_at,args,})));return rows.length;}async function sendProfile(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Profil bulunamadı. /start yazın.");await sendProfileCard(chatId,user);}async function sendAdminFileId(chatId,msg){const photoId=msg.photo?.length?msg.photo[msg.photo.length-1].file_id:"";const animationId=msg.animation?.file_id;const videoId=msg.video?.file_id;const videoNoteId=msg.video_note?.file_id;const documentId=msg.document?.file_id;const fileId=photoId||animationId||videoId||videoNoteId||documentId;const kind=photoId?"photo"?"animation"?"video"?"video_note":"document";if(!fileId)return;await sendMessage(chatId,kind==="photo"?Dosya tipi: photo\n\nProfil fotoğrafı olmayanlarda bunu kullanmak için Val Town env'e şunu ekle:\n\nDEFAULT_PROFILE_PHOTO_URL=${fileId}:Dosya tipi: ${kind}\n\nVal Town env'e şunu ekle:\n\nMATCH_ANIMATION_FILE_ID=${fileId},);}async function sendProfileCard(chatId,user,extra={}){const text=await profileText(user);const oldPhoto=user.photo_file_id||"";if(oldPhoto&&await trySendProfilePhoto(chatId,oldPhoto,text,extra)){return;}if(oldPhoto){const fresh=await getUserPhotoFileId(Number(user.user_id));if(fresh){await updateUser(Number(user.group_id),Number(user.user_id),{photo_file_id,});if(await trySendProfilePhoto(chatId,fresh,text,extra))return;}await updateUser(Number(user.group_id),Number(user.user_id),{photo_file_id:"",});}if(DEFAULT_PROFILE_PHOTO_URL&&await trySendProfilePhoto(chatId,DEFAULT_PROFILE_PHOTO_URL,text,extra))return;await sendMessage(chatId,text,extra);}async function trySendProfilePhoto(chatId,photo,caption,extra={}){try{const res=await fetch(${TG}/sendPhoto,{method:"POST",headers:{"Content-Type":"application/json"},body.stringify({chat_id,photo,caption,...extra}),});const data=await res.json().catch(()=>({}));return res.ok&&data.ok!==false;}catch{return false;}}async function profileText(u){const name=u.display_name||${u.first_name || ""} ${u.last_name || ""}.trim()||"İsimsiz";const premium=u.show_premium_badge!==0&&await hasAnyPremium(Number(u.group_id),Number(u.user_id));const badge=premium?[${EM.star} Premium Profil,${EM.diamond} Öne çıkan üye]:[];const bio=u.bio||defaultBioForUser(Number(u.user_id));const interests=u.interests?[${EM.target} İlgi alanları: ${u.interests}]:[];return[...badge,${EM.heart} ${name},${EM.pin} Şehir: ${u.city || "gizli"},${EM.cake} Yaş: ${u.age || "belirtilmedi"},${EM.user} Cinsiyet: ${u.gender ? labelGender(u.gender) : "gizli"},${EM.note} Bio: ${bio},...interests,${EM.fire} Son aktif: ${formatLastSeen(u.last_seen_at)},].join("\n");}async function flushPendingUsers(){await ensureSchema();const fromDb=await sqlite.execute({sql:"select * from pending_users order by created_at asc limit 1000",});const items=[...fromDb.rows.map((r)=>({groupId(r.group_id),userId(r.user_id),firstName.first_name??"",lastName.last_name??"",username.username??"",photoFileId.photo_file_id??"",messageCount(r.message_count??1),lastSeenAt.last_seen_at??nowIso(),})),...[...pendingUsers.values()].filter((p)=>!fromDb.rows.some((r)=>Number(r.group_id)===p.groupId&&Number(r.user_id)===p.userId)),];if(!items.length)return 0;const queries=items.map((p)=>({sql:insert into users(group_id,user_id,first_name,last_name,username,photo_file_id,active_dating,is_adult,message_count,last_seen_at,created_at,updated_at) values(:groupId,:userId,:firstName,:lastName,:username,:photoFileId,0,0,:messageCount,:lastSeenAt,:now,:now) on conflict(group_id,user_id) do update set first_name=excluded.first_name,last_name=excluded.last_name,username=excluded.username,photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id), message_count=users.message_count+excluded.message_count,last_seen_at=excluded.last_seen_at,updated_at=excluded.updated_at,args:{...p,now()},}));await sqlite.batch(queries);await sqlite.batch(items.map((p)=>({sql:"delete from pending_users where group_id=? and user_id=?",args:[p.groupId,p.userId],})),);pendingUsers.clear();return items.length;}async function maybeAutoFlushBatch(){if(await getCaptureMode()!=="batch")return;const last=await getSetting("last_auto_flush_at","");const lastMs=last?new Date(last).getTime():0;if(lastMs&&Date.now()-lastMs<460601000)return;await setSetting("last_auto_flush_at",nowIso());const count=await flushPendingUsers();if(count){await logAdminEvent("Otomatik havuz aktarimi",${count} profil havuza eklendi.,);}}async function upsertPassiveUser(p){await sqlite.execute({sql:insert into users(group_id,user_id,first_name,last_name,username,photo_file_id,active_dating,is_adult,message_count,last_seen_at,created_at,updated_at) values(:groupId,:userId,:firstName,:lastName,:username,:photoFileId,0,0,:messageCount,:lastSeenAt,:now,:now) on conflict(group_id,user_id) do update set first_name=excluded.first_name,last_name=excluded.last_name,username=excluded.username, photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id), updated_at=excluded.updated_at,args:{...p,now()},});}async function warmCache(){if(cacheReady)return;await ensureSchema();const res=await sqlite.execute({sql:"select group_id,user_id from users where deleted_at is null",});for(const row of res.rows){knownUserIds.add(userKey(Number(row.group_id),Number(row.user_id)));}const pending=await sqlite.execute({sql:"select group_id,user_id from pending_users",});for(const row of pending.rows){knownUserIds.add(userKey(Number(row.group_id),Number(row.user_id)));}cacheReady=true;}async function ensureSchema(){if(schemaReady)return;await sqlite.batch([create table if not exists users( id integer primary key autoincrement, group_id integer not null, user_id integer not null, first_name text default '', last_name text default '', username text default '', display_name text default '', photo_file_id text default '', active_dating integer default 0, is_adult integer default 0, city text default '', gender text default '', seek_gender text default 'any', bio text default '', interests text default '', age integer default 0, show_premium_badge integer default 1, message_count integer default 0, last_seen_at text, banned integer default 0, deleted_at text, created_at text, updated_at text, unique(group_id,user_id) ),create table if not exists states(user_id integer primary key,step text,data_json text,updated_at text),create table if not exists pending_users(group_id integer,user_id integer,first_name text default '',last_name text default '',username text default '',photo_file_id text default '',message_count integer default 1,last_seen_at text,created_at text,primary key(group_id,user_id)),create table if not exists likes(id integer primary key autoincrement,group_id integer,from_user_id integer,to_user_id integer,created_at text,unique(group_id,from_user_id,to_user_id)),create table if not exists hidden_profiles(id integer primary key autoincrement,group_id integer,viewer_user_id integer,hidden_user_id integer,created_at text,expires_at text default '',unique(group_id,viewer_user_id,hidden_user_id)),create table if not exists profile_snoozes(id integer primary key autoincrement,group_id integer,viewer_user_id integer,snoozed_user_id integer,created_at text,expires_at text,unique(group_id,viewer_user_id,snoozed_user_id)),create table if not exists matches(id integer primary key autoincrement,group_id integer,user1_id integer,user2_id integer,created_at text,unique(group_id,user1_id,user2_id)),create table if not exists match_messages(id integer primary key autoincrement,group_id integer,from_user_id integer,to_user_id integer,text text,created_at text),create table if not exists credits( group_id integer, user_id integer, paid_likes integer default 0, free_like_day text default '', free_like_used integer default 0, plan_daily_likes integer default 0, plan_used_day text default '', plan_used_today integer default 0, plan_expires_at text default '', primary key(group_id,user_id) ),create table if not exists purchases(id integer primary key autoincrement,group_id integer,user_id integer,product_id text,stars integer,charge_id text,payload text,created_at text),create table if not exists premium(group_id integer,user_id integer,feature text,expires_at text,created_at text,primary key(group_id,user_id,feature)),create table if not exists referrals(referrer_id integer,referred_id integer,created_at text,purchased integer default 0,purchased_at text,primary key(referrer_id,referred_id)),create table if not exists delete_requests(id integer primary key autoincrement,group_id integer,user_id integer,reason text,status text default 'pending',admin_id integer default 0,created_at text,updated_at text),create table if not exists settings(key text primary key,value text,updated_at text),]);await migrateCredits();await migrateProfilePhotos();await migrateVisibilityTables();await migrateProfileFields();schemaReady=true;}async function migrateCredits(){const columns=[["plan_daily_likes","integer default 0"],["plan_used_day","text default ''"],["plan_used_today","integer default 0"],["plan_expires_at","text default ''"],];for(const[name,type]of columns){await sqlite.execute({sql:alter table credits add column ${name} ${type},}).catch(()=>{});}}async function migrateProfilePhotos(){await sqlite.execute({sql:"alter table users add column photo_file_id text default ''",}).catch(()=>{});await sqlite.execute({sql:"alter table pending_users add column photo_file_id text default ''",}).catch(()=>{});}async function migrateVisibilityTables(){await sqlite.execute({sql:"alter table hidden_profiles add column expires_at text default ''",}).catch(()=>{});}async function migrateProfileFields(){await sqlite.execute({sql:"alter table users add column display_name text default ''",}).catch(()=>{});await sqlite.execute({sql:"alter table users add column age integer default 0",}).catch(()=>{});await sqlite.execute({sql:"alter table users add column show_premium_badge integer default 1",}).catch(()=>{});await sqlite.execute({sql:"alter table users add column interests text default ''",}).catch(()=>{});}async function getUser(groupId,userId){const res=await sqlite.execute({sql:"select * from users where group_id=? and user_id=? and deleted_at is null and banned=0",args:[groupId,userId],});return res.rows[0];}async function getActiveUser(userId){const res=await sqlite.execute({sql:"select * from users where user_id=? and active_dating=1 and deleted_at is null and banned=0 order by updated_at desc limit 1",args:[userId],});return res.rows[0];}async function getPendingUser(groupId,userId){const res=await sqlite.execute({sql:"select * from pending_users where group_id=? and user_id=? limit 1",args:[groupId,userId],});const row=res.rows[0];if(!row)return undefined;return{groupId(row.group_id),userId(row.user_id),firstName.first_name??"",lastName.last_name??"",username.username??"",photoFileId.photo_file_id??"",messageCount(row.message_count??1),lastSeenAt.last_seen_at??nowIso(),};}async function updateUser(groupId,userId,fields){const allowed=["city","gender","seek_gender","bio","interests","display_name","is_adult","photo_file_id","age","show_premium_badge",];const keys=Object.keys(fields).filter((k)=>allowed.includes(k));if(!keys.length)return;await sqlite.execute({sql:update users set ${ keys.map((k) => ${k}=?).join(",") },updated_at=? where group_id=? and user_id=?,args:[...keys.map((k)=>fields[k]),nowIso(),groupId,userId],});}async function setState(userId,step,data){await sqlite.execute({sql:"insert into states(user_id,step,data_json,updated_at) values(?,?,?,?) on conflict(user_id) do update set step=excluded.step,data_json=excluded.data_json,updated_at=excluded.updated_at",args:[userId,step,JSON.stringify(data),nowIso()],});}async function getState(userId){const res=await sqlite.execute({sql:"select * from states where user_id=?",args:[userId],});return res.rows[0];}async function clearState(userId){await sqlite.execute({sql:"delete from states where user_id=?",args:[userId],});}async function hasPremium(groupId,userId,feature){if(isPrivilegedUser(userId))return true;const res=await sqlite.execute({sql:"select 1 from premium where group_id=? and user_id=? and feature=? and expires_at>? limit 1",args:[groupId,userId,feature,nowIso()],});return Boolean(res.rows[0]);}async function hasAnyPremium(groupId,userId){if(isPrivilegedUser(userId))return true;const res=await sqlite.execute({sql:"select 1 from premium where group_id=? and user_id=? and expires_at>? limit 1",args:[groupId,userId,nowIso()],});return Boolean(res.rows[0]);}async function getSetting(key,fallback=""){const res=await sqlite.execute({sql:"select value from settings where key=? limit 1",args:[key],});return String(res.rows[0]?.value??fallback);}async function setSetting(key,value){await sqlite.execute({sql:"insert into settings(key,value,updated_at) values(?,?,?) on conflict(key) do update set value=excluded.value,updated_at=excluded.updated_at",args:[key,value,nowIso()],});}async function getCaptureMode(){const mode=await getSetting("capture_mode","instant");return mode==="batch"?"batch":"instant";}async function recordReferral(userId,payload){const match=/^ref_(\d+)$/.exec(payload||"");if(!match)return;const referrerId=Number(match[1]);if(!referrerId||referrerId===userId)return;await sqlite.execute({sql:"insert or ignore into referrals(referrer_id,referred_id,created_at,purchased) values(?,?,?,0)",args:[referrerId,userId,nowIso()],});}async function markReferralPurchase(userId){await sqlite.execute({sql:"update referrals set purchased=1,purchased_at=? where referred_id=?",args:[nowIso(),userId],});}async function getReferralStats(userId){const total=await sqlite.execute({sql:"select count() total from referrals where referrer_id=?",args:[userId],});const buyers=await sqlite.execute({sql:"select count() buyers from referrals where referrer_id=? and purchased=1",args:[userId],});const totalCount=Number(total.rows[0]?.total||0);const buyerCount=Number(buyers.rows[0]?.buyers||0);return{total,buyers,discount>=10&&buyerCount>=1,};}async function getReferralDiscount(userId){const stats=await getReferralStats(userId);return stats.discount?10:0;}async function getBestDiscountInfo(userId){const welcomeActive=WELCOME_DISCOUNT_PERCENT>0&&new Date(WELCOME_CAMPAIGN_UNTIL).getTime()>Date.now();const welcome=welcomeActive?WELCOME_DISCOUNT_PERCENT:0;const referral=await getReferralDiscount(userId);if(welcome>=referral&&welcome>0){return{percent,label:"Hoş Geldin Kampanyası"};}if(referral>0)return{percent,label:"Davet indirimi"};return{percent:0,label:""};}function discountedStars(stars,discount){if(!discount)return stars;return Math.max(1,Math.round(stars*(100-discount)/100));}function inferGroupForUser(userId){if(!STRICT_ALLOWED_GROUPS)return 0;for(const key of knownUserIds){const[g,u]=key.split(":").map(Number);if(u===userId)return g;}const first=[...ALLOWED_GROUP_IDS][0];return first||0;}async function maybeSetWebhook(url){if(webhookReady)return;const webhookUrl=new URL(url);webhookUrl.pathname="/webhook";webhookUrl.search="";await tg("setWebhook",{url.toString(),allowed_updates:["message","callback_query","pre_checkout_query"],});webhookReady=true;}async function tg(method,body){const res=await fetch(${TG}/${method},{method:"POST",headers:{"Content-Type":"application/json"},body.stringify(body),});const data=await res.json().catch(()=>({}));if(!res.ok||data.ok===false){throw new Error(${method}: ${JSON.stringify(data)});}return data;}async function sendMessage(chatId,text,extra={}){return tg("sendMessage",{chat_id,text,...extra});}async function answerCallback(id){return tg("answerCallbackQuery",{callback_query_id});}async function clearInlineKeyboard(q){const chatId=q.message?.chat?.id;const messageId=q.message?.message_id;if(!chatId||!messageId)return;await tg("editMessageReplyMarkup",{chat_id,message_id,reply_markup:{inline_keyboard:[]},}).catch(()=>{});}async function answerPreCheckout(id,ok){return tg("answerPreCheckoutQuery",{pre_checkout_query_id,ok});}async function getUserPhotoFileId(userId){try{const data=await tg("getUserProfilePhotos",{user_id,limit:1,});const photos=data.result?.photos;const first=Array.isArray(photos)?photos[0];if(!Array.isArray(first)||!first.length)return"";return first[first.length-1]?.file_id??"";}catch{return"";}}async function logError(scope,err){console.error(scope,err);if(LOG_CHAT_ID){await sendMessage(LOG_CHAT_ID,Hata: ${scope}\n${String(err?.message ?? err).slice(0, 1000)},).catch(()=>{});}}async function logUserEvent(title,user,content){if(!LOG_CHAT_ID)return;await sendMessage(LOG_CHAT_ID,${title}\n\nKullanici: ${displayName(user)} (${user.id})\n\n${ content.slice(0, 1000) },).catch(()=>{});}async function logAdminEvent(title,content){if(!LOG_CHAT_ID)return;await sendMessage(LOG_CHAT_ID,${title}\n\n${content.slice(0, 1500)}).catch(()=>{},);}async function logChatMessage(from,toId,text){if(!LOG_CHAT_ID)return;await sendMessage(LOG_CHAT_ID,${EM.chat} Bot ici mesaj\n\nKimden: ${ displayName(from) } (${from.id})\nKime: ${toId}\n\nMesaj:\n${text.slice(0, 1500)},).catch(()=>{});}async function logMediaEvent(title,from,toId,media){if(!LOG_CHAT_ID)return;await sendMedia(LOG_CHAT_ID,media,${title}\nKimden: ${displayName(from)} (${from.id})\nKime: ${toId},).catch(()=>{});}function extractMedia(msg){if(msg.photo?.length){return{method:"sendPhoto",field:"photo",fileId.photo[msg.photo.length-1].file_id,label:"fotoğraf",};}if(msg.video?.file_id){return{method:"sendVideo",field:"video",fileId.video.file_id,label:"video",};}if(msg.animation?.file_id){return{method:"sendAnimation",field:"animation",fileId.animation.file_id,label:"GIF",};}return null;}function mediaKind(msg){return msg.photo?"fotoğraf".video?"video".animation?"GIF":"desteklenmeyen medya";}async function sendMedia(chatId,media,caption,extra={}){return tg(media.method,{chat_id,[media.field].fileId,caption,...extra,});}function keyboard(inline_keyboard){return{reply_markup:{inline_keyboard}};}function btn(text,callback_data){return{text,callback_data};}function urlBtn(text,url){return{text,url};}function hasMediaPayload(msg){return Boolean(msg.photo||msg.video||msg.animation||msg.document||msg.audio||msg.voice||msg.video_note||msg.sticker,);}function hasBlockedContact(text){return/(https?://|www.|t.me/|telegram.me/|@\w{3,}|(?:+?\d[\d\s().-]{7,}\d))/i.test(text);}function ok(){return new Response("ok",{status:200});}function userKey(groupId,userId){return${groupId}:${userId};}function nowIso(){return new Date().toISOString();}function dayKey(){return new Intl.DateTimeFormat("en-CA",{timeZone,year:"numeric",month:"2-digit",day:"2-digit",}).format(new Date());}function addDaysIso(days){const d=new Date();d.setUTCDate(d.getUTCDate()+days);return d.toISOString();}function addHoursIso(hours){const d=new Date();d.setUTCHours(d.getUTCHours()+hours);return d.toISOString();}function formatLastSeen(value){if(!value)return"bilinmiyor";const date=new Date(value);if(Number.isNaN(date.getTime()))return"yakinda";const diffMs=Date.now()-date.getTime();const dayMs=2460601000;if(diffMs<dayMs)return"bugün";if(diffMs<2dayMs)return"dun";if(diffMs<7*dayMs)return"son 7 gün içinde";return new Intl.DateTimeFormat("tr-TR",{timeZone,day:"numeric",month:"long",}).format(date);}function clean(text,max){return text.trim().replace(/\s+/g," ").slice(0,max);}function displayName(u){return clean(${u.first_name ?? u.firstName ?? ""} ${u.last_name ?? u.lastName ?? ""}.trim()||"İsimsiz",40,);}function defaultBioForUser(userId){const bios=["Telegram'da sohbet etmeyi severim.","Yeni insanlarla tanismayi severim.","Guzel sohbet her zaman iyidir.","Muzik, kahve ve samimi muhabbet.","Burada yeni insanlari kesfetmek icin varim.","Iyi enerji ve keyifli sohbet ariyorum.","Kisa bir selam bazen guzel seyler baslatir.","Sohbeti guzel insanlari severim.","Yeni arkadasliklar ve guzel muhabbetler.","Bazen en guzel tanismalar tesadufen olur.",];return bios[Math.abs(Number(userId||0))%bios.length];}function labelGender(g){if(g==="female")return"Kadın";if(g==="male")return"Erkek";if(g==="any")return"Farketmez";return"eklenmedi";}function isPrivilegedUser(userId){return Boolean(userId&&(userId===OWNER_ID||userId===ADMIN_ID));}async function requireAdminFromQuery(admin){if(!ADMIN_ID||Number(admin)!==ADMIN_ID)throw new Error("Yetki yok");}
-
-
-Kapat
+10 davet + 1 paket alımı sonrası sonraki alışverişlerinde %10 indirim kazanırsın.`,keyboard([[btn(`${EM.star} Paketler`,"buy"),btn(`${EM.gift} Davet et`,"invite"),],[btn(`${EM.home} Ana menü`,"menu")]]),);}async function showInvite(chatId,userId){const link=`https://t.me/${BOT_USERNAME}?start=ref_${userId}`;const shareText=`KalpAt'a katil, profilleri kesfet ${EM.heart}\n\nBenim davet linkim:`;const shareUrl=`https://t.me/share/url?url=${
+    encodeURIComponent(link)
+  }&text=${encodeURIComponent(shareText)}`;const stats=await getReferralStats(userId);await sendMessage(chatId,`${EM.gift} Davet Kazanci
+Davet linkin:
+${link}
+Durum:
+${EM.user} Davet edilen: ${stats.total}/10
+${EM.star} Alış yapan davetli: ${stats.buyers}/1
+${EM.ticket} İndirim: ${stats.discount ? "%10 aktif" : "henüz aktif değil"}
+10 kişi davet et ve davet ettiklerinden en az 1 kişi paket alsın; sonraki paketlerinde %10 indirim kullan.
+${EM.chat} Kullanıcıya öner ile referans linkini gonderebilirsin.`,keyboard([[urlBtn(`${EM.chat} Kullanıcıya öner`,shareUrl)],[btn(`${EM.star} Paketler`,"buy"),],[btn(`${EM.home} Ana menü`,"menu")]]),);}async function showGenderFilter(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");const premium=await hasPremium(user.group_id,userId,"gender_filter");if(!premium){return showShop(chatId,userId,`${EM.search} Cinsiyet filtresi tüm paketlerde açılır.`,);}await sendMessage(chatId,`${EM.search} Kimi görmek istersiniz?`,keyboard([[btn(`${EM.woman} Kadın`,"seek_female"),btn(`${EM.man} Erkek`,"seek_male"),btn(`${EM.sparkles} Farketmez`,"seek_any"),],[btn(`${EM.home} Ana menü`,"menu")]]),);}async function sendInvoice(chatId,userId,productId){const item=PACKAGES[productId];if(!item)return sendMessage(chatId,"Paket bulunamadı.");const discountInfo=await getBestDiscountInfo(userId);const discount=discountInfo.percent;const amount=discountedStars(item.stars,discount);const payload=JSON.stringify({productId,userId,discount,discountLabel:discountInfo.label,amount,t:Date.now(),});await tg("sendInvoice",{chat_id:chatId,title:discount?`${item.title} (%${discount} indirim)`:item.title,description:`${BOT_NAME} dijital paket`,payload,provider_token:"",currency:"XTR",prices:[{label:item.title,amount}],});}async function handleSuccessfulPayment(msg){const payment=msg.successful_payment;const payload=JSON.parse(payment.invoice_payload||"{}");const productId=payload.productId;const buyerId=msg.from.id;const groupId=inferGroupForUser(buyerId);await sqlite.execute({sql:"insert into purchases(group_id,user_id,product_id,stars,charge_id,payload,created_at) values(?,?,?,?,?,?,?)",args:[groupId,buyerId,productId,payment.total_amount,payment.telegram_payment_charge_id,payment.invoice_payload,nowIso(),],});await markReferralPurchase(buyerId);const pack=PACKAGES[productId];if(pack){await sqlite.execute({sql:`
+insert into credits(group_id,user_id,paid_likes,free_like_day,free_like_used,plan_daily_likes,plan_used_day,plan_used_today,plan_expires_at)
+values(?,?,0,'',0,?,'',0,?)
+on conflict(group_id,user_id) do update set
+plan_daily_likes=excluded.plan_daily_likes,
+plan_used_day='',
+plan_used_today=0,
+plan_expires_at=excluded.plan_expires_at
+`,args:[groupId,buyerId,pack.dailyLikes,addDaysIso(pack.days)],});for(const feature of pack.features){await sqlite.execute({sql:`
+insert into premium(group_id,user_id,feature,expires_at,created_at) values(?,?,?,?,?)
+on conflict(group_id,user_id,feature) do update set expires_at=excluded.expires_at
+`,args:[groupId,buyerId,feature,addDaysIso(pack.days),nowIso()],});}await sendMessage(buyerId,`${EM.check} ${pack.title} aktif edildi.\n${pack.days} gün boyunca günlük ${pack.dailyLikes} beğeni hakkınız var.`,);await logAdminEvent("Satin alim",`${buyerId}\nPaket: ${pack.title}\nTutar: ${payment.total_amount}${EM.star}`,);}}async function showLikers(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start kullanın.");const premium=await hasPremium(user.group_id,userId,"see_likers");if(!premium){return showShop(chatId,userId,`${EM.eye} Beni beğenenleri görmek Plus, Gold ve VIP paketlerinde acilir.`,);}const res=await sqlite.execute({sql:`
+select u.* from likes l
+join users u on u.group_id=l.group_id and u.user_id=l.from_user_id
+left join likes mine on mine.group_id=l.group_id and mine.from_user_id=:me and mine.to_user_id=l.from_user_id
+where l.group_id=:group_id and l.to_user_id=:me and mine.id is null
+order by l.created_at desc
+limit 10
+`,args:{group_id:user.group_id,me:userId},});if(!res.rows.length){return sendMessage(chatId,"Henüz yeni beğeni yok.",keyboard([[btn(`${EM.twoHearts} Profil gez`,"browse")],[btn(`${EM.home} Menü`,"menu"),]]),);}await sendMessage(chatId,`${EM.eye} Seni beğenenler:`);for(const liker of res.rows){await sendProfileCard(chatId,liker,keyboard([[btn(`${EM.sparklingHeart} Esles`,`like:${liker.user_id}`),btn(`${EM.cross} Kaldir`,`dismiss_liker:${liker.user_id}`),],[btn(`${EM.home} Menü`,"menu")]]),);}}async function dismissLiker(chatId,userId,likerId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start kullanın.");await sqlite.execute({sql:"delete from likes where group_id=? and from_user_id=? and to_user_id=?",args:[user.group_id,likerId,userId],});return sendMessage(chatId,"Beğeni kaldırıldı.",keyboard([[btn(`${EM.eye} Beni beğenenler`,"likers")],[btn(`${EM.home} Menü`,"menu"),]]),);}async function showMatches(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start kullanın.");const res=await sqlite.execute({sql:`
+select u.* from matches m
+join users u on u.group_id=m.group_id
+and u.user_id=case when m.user1_id=:user then m.user2_id else m.user1_id end
+where m.group_id=:group_id and (m.user1_id=:user or m.user2_id=:user)
+and u.deleted_at is null and u.banned=0
+order by m.created_at desc
+limit 10
+`,args:{group_id:user.group_id,user:userId},});if(!res.rows.length){return sendMessage(chatId,"Henüz eşleşme yok.",keyboard([[btn(`${EM.twoHearts} Profil gez`,"browse")],[btn(`${EM.home} Menü`,"menu"),]]),);}await sendMessage(chatId,`${EM.sparklingHeart} Eşleşmelerin:`);for(const match of res.rows){await sendProfileCard(chatId,match,keyboard([[btn(`${EM.chat} Mesaj yaz`,`msg:${match.user_id}`),btn(`${EM.user} Profili gör`,`view_match:${match.user_id}`),],[btn(`${EM.cross} Eşleşmeyi kaldır`,`unmatch:${match.user_id}`)],[btn(`${EM.home} Menü`,"menu")],]),);}}async function firstWelcomeText(groupId){const stats=await getPublicStats(groupId);return`${EM.heart} KalpAt'a hoş geldin
+${EM.user} ${stats.total} profil seni bekliyor
+${statsLine(stats)}
+${EM.mail} Yeni kalpler seni bekliyor
+Devam etmek için 18+ olduğunu onayla.`;}async function welcomeBackText(groupId){const stats=await getPublicStats(groupId);return`${EM.heart} KalpAt'a tekrar hoş geldin
+${EM.user} ${stats.total} profil
+${statsLine(stats)}
+${EM.mail} Yeni kalpler seni bekliyor
+Profilin aktif. Buradan profil gezebilir, beğenilerini görebilir, paketleri inceleyebilir veya arkadaşlarını davet edebilirsin.`;}async function menuText(groupId){const stats=await getPublicStats(groupId);return`${EM.heart} KalpAt
+${EM.user} ${stats.total} profil seni bekliyor
+${statsLine(stats)}
+${EM.mail} Yeni kalpler seni bekliyor
+Ne yapmak istersin?`;}function statsLine(stats){return stats.recent&&stats.recent<stats.total?`${EM.fire} Son 7 günde ${stats.recent} kişi hareketliydi`:`${EM.fire} Yeni profiller eklenmeye devam ediyor`;}async function getPublicStats(groupId){const since=new Date(Date.now()-7*24*60*60*1000).toISOString();const res=await sqlite.execute({sql:`
+select
+count(*) total,
+sum(case when active_dating=1 then 1 else 0 end) active,
+sum(case when last_seen_at>=? then 1 else 0 end) recent
+from users
+where group_id=? and deleted_at is null and banned=0
+`,args:[since,groupId],});const row=res.rows[0]||{};return{total:Number(row.total||0),active:Number(row.active||0),recent:Number(row.recent||0),};}async function showEditProfile(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");const premium=await hasAnyPremium(user.group_id,userId);const rows=[[btn("Görünen ad","edit_name")],[btn("Şehir","edit_city"),btn("Yaş","edit_age"),btn("Bio","edit_bio"),],[btn("İlgi alanları","edit_interests")],[btn("Kadın","edit_gender_female"),btn("Erkek","edit_gender_male")],[btn("Fotoğraf ekle/değiştir","edit_photo")],[btn("Telegram fotoğrafımı yenile","refresh_photo")],];if(premium){rows.push([btn(user.show_premium_badge===0?`${EM.star} Premium olduğumu göster`:`${EM.star} Premium olduğumu gizle`,"toggle_badge",)]);}rows.push([btn("Profilimi göster","menu")]);await sendMessage(chatId,`Profil düzenle\n\n${await profileText(user)}`,keyboard(rows),);}async function handleProfilePhotoUpload(chatId,from,msg,state){const text=(msg.text??"").trim();if(text==="/menu"||text==="/cancel"){await clearState(from.id);return sendMainMenu(chatId);}if(!msg.photo?.length){return sendMessage(chatId,"Bu adımda sadece fotoğraf kabul edilir. İptal etmek için /menu yazabilirsiniz.",);}const data=JSON.parse(state.data_json||"{}");const groupId=Number(data.groupId||inferGroupForUser(from.id));const photo=msg.photo[msg.photo.length-1];await updateUser(groupId,from.id,{photo_file_id:photo.file_id});await clearState(from.id);await sendMessage(chatId,"Profil fotoğrafı güncellendi.");return sendProfile(chatId,from.id);}async function refreshProfilePhoto(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");const fileId=await getUserPhotoFileId(userId);if(!fileId){return sendMessage(chatId,"Telegram profil fotoğrafı okunamadı. Profil düzenle > Fotoğraf ekle/değiştir ile fotoğraf yükleyebilirsin.",);}await updateUser(user.group_id,userId,{photo_file_id:fileId});await sendMessage(chatId,"Telegram profil fotoğrafı yenilendi.");return sendProfile(chatId,userId);}async function togglePremiumBadge(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");const next=user.show_premium_badge===0?1:0;await updateUser(user.group_id,userId,{show_premium_badge:next});await sendMessage(chatId,next?`${EM.star} Premium olduğun gösterilecek.`:`${EM.star} Premium olduğun gizlenecek.`,);return showEditProfile(chatId,userId);}async function createDeleteRequest(chatId,from,groupId,reason){const cleanReason=clean(reason,500);if(!cleanReason||cleanReason.startsWith("/")){await clearState(from.id);return sendMainMenu(chatId);}await sqlite.execute({sql:"insert into delete_requests(group_id,user_id,reason,status,created_at,updated_at) values(?,?,?,'pending',?,?)",args:[groupId,from.id,cleanReason,nowIso(),nowIso()],});await clearState(from.id);await logUserEvent("Profil silme talebi",from,cleanReason);await sendMessage(chatId,`${EM.check} Profil silme talebin alındı.\n\nTalebin admin tarafından incelenecek. Uygun görülürse 1-2 hafta icinde profilin silinebilir.`,);}async function listDeleteRequests(chatId){const res=await sqlite.execute({sql:"select d.*,u.first_name,u.last_name from delete_requests d left join users u on u.group_id=d.group_id and u.user_id=d.user_id where d.status='pending' order by d.created_at asc limit 20",});if(!res.rows.length){return sendMessage(chatId,"Bekleyen silme talebi yok.");}const text=res.rows.map((r)=>`${
+      displayName(r)
+    } (${r.user_id})\nSebep: ${r.reason}\n/admin approve_delete ${r.user_id}\n/admin reject_delete ${r.user_id}`).join("\n\n---\n\n");return sendMessage(chatId,text);}async function approveDeleteRequest(chatId,userId,adminId){await sqlite.execute({sql:"update users set deleted_at=?,active_dating=0 where user_id=?",args:[nowIso(),userId],});await sqlite.execute({sql:"update delete_requests set status='approved',admin_id=?,updated_at=? where user_id=? and status='pending'",args:[adminId,nowIso(),userId],});await sendMessage(userId,"Profil silme talebin onaylandi. Profilin silindi.").catch(()=>{});await logAdminEvent("Silme talebi onaylandi",`user_id=${userId}`);return sendMessage(chatId,"Silme talebi onaylandi.");}async function rejectDeleteRequest(chatId,userId,adminId){await sqlite.execute({sql:"update delete_requests set status='rejected',admin_id=?,updated_at=? where user_id=? and status='pending'",args:[adminId,nowIso(),userId],});await sendMessage(userId,"Profil silme talebin incelendi ve reddedildi. Profilin aktif kalmaya devam ediyor.",).catch(()=>{});await logAdminEvent("Silme talebi reddedildi",`user_id=${userId}`);return sendMessage(chatId,"Silme talebi reddedildi.");}async function handleCaptureAdmin(chatId,mode){if(!mode){const current=await getCaptureMode();return sendMessage(chatId,`Profil toplama modu: ${
+        current === "instant" ? "Aninda" : "Toplu"
+      }\n\n/admin capture instant\n/admin capture batch`,);}if(!["instant","batch"].includes(mode)){return sendMessage(chatId,"Kullanim: /admin capture instant veya /admin capture batch",);}await setSetting("capture_mode",mode);await logAdminEvent("Profil toplama modu degisti",mode);return sendMessage(chatId,mode==="instant"?"Profil toplama modu: Aninda. Grupta mesaj atan kullanici hemen havuza yazilir.":"Profil toplama modu: Toplu. Grupta mesaj atan kullanici bekleme listesine alinir; /cron veya /admin flush ile toplu yazilir.",);}async function beginMatchedMessage(chatId,fromId,toId){const user=await getActiveUser(fromId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");if(!(await areMatched(user.group_id,fromId,toId))){return sendMessage(chatId,"Bu kişiyle aktif eşleşme bulunamadı.");}const target=await getUser(user.group_id,toId);await setState(fromId,"compose_message",{groupId:user.group_id,toId});return sendMessage(chatId,`${EM.chat} ${
+      target ? displayName(target) : "Eslesmen"
+    } için mesajını yaz.\n\nLink, @kullanici adi, telefon ve medya gönderilemez.`,keyboard([[btn(`${EM.user} Profili gör`,`view_match:${toId}`)],[btn(`${EM.cross} Vazgec`,"cancel"),btn(`${EM.home} Menü`,"menu"),]]),);}async function viewMatchedProfile(chatId,viewerId,targetId){const viewer=await getActiveUser(viewerId);if(!viewer)return sendMessage(chatId,"Önce /start ile profil oluşturun.");if(!(await areMatched(viewer.group_id,viewerId,targetId))){return sendMessage(chatId,"Bu kişiyle aktif eşleşme bulunamadı.");}const target=await getUser(viewer.group_id,targetId);if(!target)return sendMessage(chatId,"Profil bulunamadı.");return sendProfileCard(chatId,target,keyboard([[btn(`${EM.chat} Mesaj yaz`,`msg:${targetId}`),btn(`${EM.cross} Eşleşmeyi kaldır`,`unmatch:${targetId}`),],[btn(`${EM.home} Menü`,"menu")]]),);}async function unmatchUser(chatId,userId,otherId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Önce /start ile profil oluşturun.");await sqlite.execute({sql:"delete from matches where group_id=? and user1_id=? and user2_id=?",args:[user.group_id,Math.min(userId,otherId),Math.max(userId,otherId)],});await sqlite.execute({sql:"delete from likes where group_id=? and ((from_user_id=? and to_user_id=?) or (from_user_id=? and to_user_id=?))",args:[user.group_id,userId,otherId,otherId,userId],});await clearState(userId);await sendMessage(otherId,`${EM.cross} Bir eslesme sona erdi.`).catch(()=>{},);return sendMessage(chatId,`${EM.check} Eslesme kaldirildi.`,keyboard([[btn(`${EM.sparklingHeart} Eslesmelerim`,"matches")],[btn(`${EM.home} Menü`,"menu"),]]),);}async function areMatched(groupId,a,b){const res=await sqlite.execute({sql:"select 1 from matches where group_id=? and user1_id=? and user2_id=? limit 1",args:[groupId,Math.min(a,b),Math.max(a,b)],});return Boolean(res.rows[0]);}async function handleAdmin(chatId,fromId,text){if(fromId!==ADMIN_ID)return sendMessage(chatId,"Yetki yok.");const parts=text.split(/\s+/);if(parts[1]==="stats"){const groups=await sqlite.execute({sql:"select group_id,count(*) total,sum(active_dating) active,sum(case when active_dating=0 then 1 else 0 end) passive from users where deleted_at is null group by group_id",});const recentUsers=await sqlite.execute({sql:"select group_id,user_id,first_name,last_name,last_seen_at,message_count from users where deleted_at is null order by updated_at desc limit 8",});const likes=await sqlite.execute({sql:"select count(*) likes from likes",});const matches=await sqlite.execute({sql:"select count(*) matches from matches",});const purchases=await sqlite.execute({sql:"select count(*) purchases from purchases",});const captureMode=await getCaptureMode();return sendMessage(chatId,"Stats:\n"+JSON.stringify({capture_mode:captureMode,groups:groups.rows,recent_users:recentUsers.rows,likes:likes.rows[0],matches:matches.rows[0],purchases:purchases.rows[0],pending:pendingUsers.size,},null,2,),);}if(parts[1]==="ban"&&parts[2]){await sqlite.execute({sql:"update users set banned=1 where user_id=?",args:[Number(parts[2])],});return sendMessage(chatId,"Banlandi.");}if(parts[1]==="unban"&&parts[2]){await sqlite.execute({sql:"update users set banned=0 where user_id=?",args:[Number(parts[2])],});return sendMessage(chatId,"Ban kaldirildi.");}if(parts[1]==="delete"&&parts[2]){await sqlite.execute({sql:"update users set deleted_at=? where user_id=?",args:[nowIso(),Number(parts[2])],});return sendMessage(chatId,"Silindi.");}if(parts[1]==="delete_requests")return listDeleteRequests(chatId);if(parts[1]==="approve_delete"&&parts[2]){return approveDeleteRequest(chatId,Number(parts[2]),fromId);}if(parts[1]==="reject_delete"&&parts[2]){return rejectDeleteRequest(chatId,Number(parts[2]),fromId);}if(parts[1]==="capture")return handleCaptureAdmin(chatId,parts[2]);if(parts[1]==="flush"){const count=await flushPendingUsers();return sendMessage(chatId,`${count} pending kullanici yazildi.`);}if(parts[1]==="syncglobal"){const count=await syncGlobalPool();return sendMessage(chatId,`${count} profil ana havuza kopyalandi.`);}if(parts[1]==="testmatch"){const targetChatId=Number(parts[2]||chatId);await sendMatchMessage(targetChatId);return sendMessage(chatId,"Test eşleşme bildirimi gönderildi.");}return sendMessage(chatId,"/admin stats|capture instant/batch|delete_requests|approve_delete ID|reject_delete ID|ban ID|unban ID|delete ID|flush|syncglobal|testmatch",);}async function deleteProfile(chatId,userId){const user=await getActiveUser(userId);const groupId=user?.group_id??inferGroupForUser(userId);await setState(userId,"delete_reason",{groupId});await sendMessage(chatId,`${EM.note} Profil silme talebi için sebebini yaz.\n\nAdmin inceler; uygun gorulurse 1-2 hafta icinde silinebilir.\n\nVazgecmek icin /menu.`,);}async function syncGlobalPool(){const res=await sqlite.execute({sql:"select * from users where group_id<>0 and deleted_at is null and banned=0",});const rows=res.rows;if(!rows.length)return 0;await sqlite.batch(rows.map((u)=>({sql:`
+insert into users(group_id,user_id,first_name,last_name,username,display_name,photo_file_id,active_dating,is_adult,city,gender,seek_gender,bio,interests,age,show_premium_badge,message_count,last_seen_at,created_at,updated_at)
+values(0,:user_id,:first_name,:last_name,:username,:display_name,:photo_file_id,:active_dating,:is_adult,:city,:gender,:seek_gender,:bio,:interests,:age,:show_premium_badge,:message_count,:last_seen_at,:created_at,:updated_at)
+on conflict(group_id,user_id) do update set
+first_name=excluded.first_name,
+last_name=excluded.last_name,
+username=excluded.username,
+photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id),
+message_count=max(users.message_count,excluded.message_count),
+last_seen_at=excluded.last_seen_at,
+updated_at=excluded.updated_at
+`,args:u,})));return rows.length;}async function sendProfile(chatId,userId){const user=await getActiveUser(userId);if(!user)return sendMessage(chatId,"Profil bulunamadı. /start yazın.");await sendProfileCard(chatId,user);}async function sendAdminFileId(chatId,msg){const photoId=msg.photo?.length?msg.photo[msg.photo.length-1].file_id:"";const animationId=msg.animation?.file_id;const videoId=msg.video?.file_id;const videoNoteId=msg.video_note?.file_id;const documentId=msg.document?.file_id;const fileId=photoId||animationId||videoId||videoNoteId||documentId;const kind=photoId?"photo":animationId?"animation":videoId?"video":videoNoteId?"video_note":"document";if(!fileId)return;await sendMessage(chatId,kind==="photo"?`Dosya tipi: photo\n\nProfil fotoğrafı olmayanlarda bunu kullanmak için Val Town env'e şunu ekle:\n\nDEFAULT_PROFILE_PHOTO_URL=${fileId}`:`Dosya tipi: ${kind}\n\nVal Town env'e şunu ekle:\n\nMATCH_ANIMATION_FILE_ID=${fileId}`,);}async function sendProfileCard(chatId,user,extra={}){const text=await profileText(user);const oldPhoto=user.photo_file_id||"";if(oldPhoto&&await trySendProfilePhoto(chatId,oldPhoto,text,extra)){return;}if(oldPhoto){const fresh=await getUserPhotoFileId(Number(user.user_id));if(fresh){await updateUser(Number(user.group_id),Number(user.user_id),{photo_file_id:fresh,});if(await trySendProfilePhoto(chatId,fresh,text,extra))return;}await updateUser(Number(user.group_id),Number(user.user_id),{photo_file_id:"",});}if(DEFAULT_PROFILE_PHOTO_URL&&await trySendProfilePhoto(chatId,DEFAULT_PROFILE_PHOTO_URL,text,extra))return;await sendMessage(chatId,text,extra);}async function trySendProfilePhoto(chatId,photo,caption,extra={}){try{const res=await fetch(`${TG}/sendPhoto`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:chatId,photo,caption,...extra}),});const data=await res.json().catch(()=>({}));return res.ok&&data.ok!==false;}catch{return false;}}async function profileText(u){const name=u.display_name||`${u.first_name || ""} ${u.last_name || ""}`.trim()||"İsimsiz";const premium=u.show_premium_badge!==0&&await hasAnyPremium(Number(u.group_id),Number(u.user_id));const badge=premium?[`${EM.star} Premium Profil`,`${EM.diamond} Öne çıkan üye`]:[];const bio=u.bio||defaultBioForUser(Number(u.user_id));const interests=u.interests?[`${EM.target} İlgi alanları: ${u.interests}`]:[];return[...badge,`${EM.heart} ${name}`,`${EM.pin} Şehir: ${u.city || "gizli"}`,`${EM.cake} Yaş: ${u.age || "belirtilmedi"}`,`${EM.user} Cinsiyet: ${u.gender ? labelGender(u.gender) : "gizli"}`,`${EM.note} Bio: ${bio}`,...interests,`${EM.fire} Son aktif: ${formatLastSeen(u.last_seen_at)}`,].join("\n");}async function flushPendingUsers(){await ensureSchema();const fromDb=await sqlite.execute({sql:"select * from pending_users order by created_at asc limit 1000",});const items=[...fromDb.rows.map((r)=>({groupId:Number(r.group_id),userId:Number(r.user_id),firstName:r.first_name??"",lastName:r.last_name??"",username:r.username??"",photoFileId:r.photo_file_id??"",messageCount:Number(r.message_count??1),lastSeenAt:r.last_seen_at??nowIso(),})),...[...pendingUsers.values()].filter((p)=>!fromDb.rows.some((r)=>Number(r.group_id)===p.groupId&&Number(r.user_id)===p.userId)),];if(!items.length)return 0;const queries=items.map((p)=>({sql:`
+insert into users(group_id,user_id,first_name,last_name,username,photo_file_id,active_dating,is_adult,message_count,last_seen_at,created_at,updated_at)
+values(:groupId,:userId,:firstName,:lastName,:username,:photoFileId,0,0,:messageCount,:lastSeenAt,:now,:now)
+on conflict(group_id,user_id) do update set
+first_name=excluded.first_name,last_name=excluded.last_name,username=excluded.username,photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id),
+message_count=users.message_count+excluded.message_count,last_seen_at=excluded.last_seen_at,updated_at=excluded.updated_at
+`,args:{...p,now:nowIso()},}));await sqlite.batch(queries);await sqlite.batch(items.map((p)=>({sql:"delete from pending_users where group_id=? and user_id=?",args:[p.groupId,p.userId],})),);pendingUsers.clear();return items.length;}async function maybeAutoFlushBatch(){if(await getCaptureMode()!=="batch")return;const last=await getSetting("last_auto_flush_at","");const lastMs=last?new Date(last).getTime():0;if(lastMs&&Date.now()-lastMs<4*60*60*1000)return;await setSetting("last_auto_flush_at",nowIso());const count=await flushPendingUsers();if(count){await logAdminEvent("Otomatik havuz aktarimi",`${count} profil havuza eklendi.`,);}}async function upsertPassiveUser(p){await sqlite.execute({sql:`
+insert into users(group_id,user_id,first_name,last_name,username,photo_file_id,active_dating,is_adult,message_count,last_seen_at,created_at,updated_at)
+values(:groupId,:userId,:firstName,:lastName,:username,:photoFileId,0,0,:messageCount,:lastSeenAt,:now,:now)
+on conflict(group_id,user_id) do update set
+first_name=excluded.first_name,last_name=excluded.last_name,username=excluded.username,
+photo_file_id=coalesce(nullif(excluded.photo_file_id,''),users.photo_file_id),
+updated_at=excluded.updated_at
+`,args:{...p,now:nowIso()},});}async function warmCache(){if(cacheReady)return;await ensureSchema();const res=await sqlite.execute({sql:"select group_id,user_id from users where deleted_at is null",});for(const row of res.rows){knownUserIds.add(userKey(Number(row.group_id),Number(row.user_id)));}const pending=await sqlite.execute({sql:"select group_id,user_id from pending_users",});for(const row of pending.rows){knownUserIds.add(userKey(Number(row.group_id),Number(row.user_id)));}cacheReady=true;}async function ensureSchema(){if(schemaReady)return;await sqlite.batch([`create table if not exists users(
+id integer primary key autoincrement,
+group_id integer not null,
+user_id integer not null,
+first_name text default '',
+last_name text default '',
+username text default '',
+display_name text default '',
+photo_file_id text default '',
+active_dating integer default 0,
+is_adult integer default 0,
+city text default '',
+gender text default '',
+seek_gender text default 'any',
+bio text default '',
+interests text default '',
+age integer default 0,
+show_premium_badge integer default 1,
+message_count integer default 0,
+last_seen_at text,
+banned integer default 0,
+deleted_at text,
+created_at text,
+updated_at text,
+unique(group_id,user_id)
+)`,`create table if not exists states(user_id integer primary key,step text,data_json text,updated_at text)`,`create table if not exists pending_users(group_id integer,user_id integer,first_name text default '',last_name text default '',username text default '',photo_file_id text default '',message_count integer default 1,last_seen_at text,created_at text,primary key(group_id,user_id))`,`create table if not exists likes(id integer primary key autoincrement,group_id integer,from_user_id integer,to_user_id integer,created_at text,unique(group_id,from_user_id,to_user_id))`,`create table if not exists hidden_profiles(id integer primary key autoincrement,group_id integer,viewer_user_id integer,hidden_user_id integer,created_at text,expires_at text default '',unique(group_id,viewer_user_id,hidden_user_id))`,`create table if not exists profile_snoozes(id integer primary key autoincrement,group_id integer,viewer_user_id integer,snoozed_user_id integer,created_at text,expires_at text,unique(group_id,viewer_user_id,snoozed_user_id))`,`create table if not exists matches(id integer primary key autoincrement,group_id integer,user1_id integer,user2_id integer,created_at text,unique(group_id,user1_id,user2_id))`,`create table if not exists match_messages(id integer primary key autoincrement,group_id integer,from_user_id integer,to_user_id integer,text text,created_at text)`,`create table if not exists credits(
+group_id integer,
+user_id integer,
+paid_likes integer default 0,
+free_like_day text default '',
+free_like_used integer default 0,
+plan_daily_likes integer default 0,
+plan_used_day text default '',
+plan_used_today integer default 0,
+plan_expires_at text default '',
+primary key(group_id,user_id)
+)`,`create table if not exists purchases(id integer primary key autoincrement,group_id integer,user_id integer,product_id text,stars integer,charge_id text,payload text,created_at text)`,`create table if not exists premium(group_id integer,user_id integer,feature text,expires_at text,created_at text,primary key(group_id,user_id,feature))`,`create table if not exists referrals(referrer_id integer,referred_id integer,created_at text,purchased integer default 0,purchased_at text,primary key(referrer_id,referred_id))`,`create table if not exists delete_requests(id integer primary key autoincrement,group_id integer,user_id integer,reason text,status text default 'pending',admin_id integer default 0,created_at text,updated_at text)`,`create table if not exists settings(key text primary key,value text,updated_at text)`,]);await migrateCredits();await migrateProfilePhotos();await migrateVisibilityTables();await migrateProfileFields();schemaReady=true;}async function migrateCredits(){const columns=[["plan_daily_likes","integer default 0"],["plan_used_day","text default ''"],["plan_used_today","integer default 0"],["plan_expires_at","text default ''"],];for(const[name,type]of columns){await sqlite.execute({sql:`alter table credits add column ${name} ${type}`,}).catch(()=>{});}}async function migrateProfilePhotos(){await sqlite.execute({sql:"alter table users add column photo_file_id text default ''",}).catch(()=>{});await sqlite.execute({sql:"alter table pending_users add column photo_file_id text default ''",}).catch(()=>{});}async function migrateVisibilityTables(){await sqlite.execute({sql:"alter table hidden_profiles add column expires_at text default ''",}).catch(()=>{});}async function migrateProfileFields(){await sqlite.execute({sql:"alter table users add column display_name text default ''",}).catch(()=>{});await sqlite.execute({sql:"alter table users add column age integer default 0",}).catch(()=>{});await sqlite.execute({sql:"alter table users add column show_premium_badge integer default 1",}).catch(()=>{});await sqlite.execute({sql:"alter table users add column interests text default ''",}).catch(()=>{});}async function getUser(groupId,userId){const res=await sqlite.execute({sql:"select * from users where group_id=? and user_id=? and deleted_at is null and banned=0",args:[groupId,userId],});return res.rows[0];}async function getActiveUser(userId){const res=await sqlite.execute({sql:"select * from users where user_id=? and active_dating=1 and deleted_at is null and banned=0 order by updated_at desc limit 1",args:[userId],});return res.rows[0];}async function getPendingUser(groupId,userId){const res=await sqlite.execute({sql:"select * from pending_users where group_id=? and user_id=? limit 1",args:[groupId,userId],});const row=res.rows[0];if(!row)return undefined;return{groupId:Number(row.group_id),userId:Number(row.user_id),firstName:row.first_name??"",lastName:row.last_name??"",username:row.username??"",photoFileId:row.photo_file_id??"",messageCount:Number(row.message_count??1),lastSeenAt:row.last_seen_at??nowIso(),};}async function updateUser(groupId,userId,fields){const allowed=["city","gender","seek_gender","bio","interests","display_name","is_adult","photo_file_id","age","show_premium_badge",];const keys=Object.keys(fields).filter((k)=>allowed.includes(k));if(!keys.length)return;await sqlite.execute({sql:`update users set ${
+      keys.map((k) => `${k}=?`).join(",")
+    },updated_at=? where group_id=? and user_id=?`,args:[...keys.map((k)=>fields[k]),nowIso(),groupId,userId],});}async function setState(userId,step,data){await sqlite.execute({sql:"insert into states(user_id,step,data_json,updated_at) values(?,?,?,?) on conflict(user_id) do update set step=excluded.step,data_json=excluded.data_json,updated_at=excluded.updated_at",args:[userId,step,JSON.stringify(data),nowIso()],});}async function getState(userId){const res=await sqlite.execute({sql:"select * from states where user_id=?",args:[userId],});return res.rows[0];}async function clearState(userId){await sqlite.execute({sql:"delete from states where user_id=?",args:[userId],});}async function hasPremium(groupId,userId,feature){if(isPrivilegedUser(userId))return true;const res=await sqlite.execute({sql:"select 1 from premium where group_id=? and user_id=? and feature=? and expires_at>? limit 1",args:[groupId,userId,feature,nowIso()],});return Boolean(res.rows[0]);}async function hasAnyPremium(groupId,userId){if(isPrivilegedUser(userId))return true;const res=await sqlite.execute({sql:"select 1 from premium where group_id=? and user_id=? and expires_at>? limit 1",args:[groupId,userId,nowIso()],});return Boolean(res.rows[0]);}async function getSetting(key,fallback=""){const res=await sqlite.execute({sql:"select value from settings where key=? limit 1",args:[key],});return String(res.rows[0]?.value??fallback);}async function setSetting(key,value){await sqlite.execute({sql:"insert into settings(key,value,updated_at) values(?,?,?) on conflict(key) do update set value=excluded.value,updated_at=excluded.updated_at",args:[key,value,nowIso()],});}async function getCaptureMode(){const mode=await getSetting("capture_mode","instant");return mode==="batch"?"batch":"instant";}async function recordReferral(userId,payload){const match=/^ref_(\d+)$/.exec(payload||"");if(!match)return;const referrerId=Number(match[1]);if(!referrerId||referrerId===userId)return;await sqlite.execute({sql:"insert or ignore into referrals(referrer_id,referred_id,created_at,purchased) values(?,?,?,0)",args:[referrerId,userId,nowIso()],});}async function markReferralPurchase(userId){await sqlite.execute({sql:"update referrals set purchased=1,purchased_at=? where referred_id=?",args:[nowIso(),userId],});}async function getReferralStats(userId){const total=await sqlite.execute({sql:"select count(*) total from referrals where referrer_id=?",args:[userId],});const buyers=await sqlite.execute({sql:"select count(*) buyers from referrals where referrer_id=? and purchased=1",args:[userId],});const totalCount=Number(total.rows[0]?.total||0);const buyerCount=Number(buyers.rows[0]?.buyers||0);return{total:totalCount,buyers:buyerCount,discount:totalCount>=10&&buyerCount>=1,};}async function getReferralDiscount(userId){const stats=await getReferralStats(userId);return stats.discount?10:0;}async function getBestDiscountInfo(userId){const welcomeActive=WELCOME_DISCOUNT_PERCENT>0&&new Date(WELCOME_CAMPAIGN_UNTIL).getTime()>Date.now();const welcome=welcomeActive?WELCOME_DISCOUNT_PERCENT:0;const referral=await getReferralDiscount(userId);if(welcome>=referral&&welcome>0){return{percent:welcome,label:"Hoş Geldin Kampanyası"};}if(referral>0)return{percent:referral,label:"Davet indirimi"};return{percent:0,label:""};}function discountedStars(stars,discount){if(!discount)return stars;return Math.max(1,Math.round(stars*(100-discount)/100));}function inferGroupForUser(userId){if(!STRICT_ALLOWED_GROUPS)return 0;for(const key of knownUserIds){const[g,u]=key.split(":").map(Number);if(u===userId)return g;}const first=[...ALLOWED_GROUP_IDS][0];return first||0;}async function maybeSetWebhook(url){if(webhookReady)return;const webhookUrl=new URL(url);webhookUrl.pathname="/webhook";webhookUrl.search="";await tg("setWebhook",{url:webhookUrl.toString(),allowed_updates:["message","callback_query","pre_checkout_query"],});webhookReady=true;}async function tg(method,body){const res=await fetch(`${TG}/${method}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),});const data=await res.json().catch(()=>({}));if(!res.ok||data.ok===false){throw new Error(`${method}: ${JSON.stringify(data)}`);}return data;}async function sendMessage(chatId,text,extra={}){return tg("sendMessage",{chat_id:chatId,text,...extra});}async function answerCallback(id){return tg("answerCallbackQuery",{callback_query_id:id});}async function clearInlineKeyboard(q){const chatId=q.message?.chat?.id;const messageId=q.message?.message_id;if(!chatId||!messageId)return;await tg("editMessageReplyMarkup",{chat_id:chatId,message_id:messageId,reply_markup:{inline_keyboard:[]},}).catch(()=>{});}async function answerPreCheckout(id,ok){return tg("answerPreCheckoutQuery",{pre_checkout_query_id:id,ok});}async function getUserPhotoFileId(userId){try{const data=await tg("getUserProfilePhotos",{user_id:userId,limit:1,});const photos=data.result?.photos;const first=Array.isArray(photos)?photos[0]:undefined;if(!Array.isArray(first)||!first.length)return"";return first[first.length-1]?.file_id??"";}catch{return"";}}async function logError(scope,err){console.error(scope,err);if(LOG_CHAT_ID){await sendMessage(LOG_CHAT_ID,`Hata: ${scope}\n${String(err?.message ?? err).slice(0, 1000)}`,).catch(()=>{});}}async function logUserEvent(title,user,content){if(!LOG_CHAT_ID)return;await sendMessage(LOG_CHAT_ID,`${title}\n\nKullanici: ${displayName(user)} (${user.id})\n\n${
+      content.slice(0, 1000)
+    }`,).catch(()=>{});}async function logAdminEvent(title,content){if(!LOG_CHAT_ID)return;await sendMessage(LOG_CHAT_ID,`${title}\n\n${content.slice(0, 1500)}`).catch(()=>{},);}async function logChatMessage(from,toId,text){if(!LOG_CHAT_ID)return;await sendMessage(LOG_CHAT_ID,`${EM.chat} Bot ici mesaj\n\nKimden: ${
+      displayName(from)
+    } (${from.id})\nKime: ${toId}\n\nMesaj:\n${text.slice(0, 1500)}`,).catch(()=>{});}async function logMediaEvent(title,from,toId,media){if(!LOG_CHAT_ID)return;await sendMedia(LOG_CHAT_ID,media,`${title}\nKimden: ${displayName(from)} (${from.id})\nKime: ${toId}`,).catch(()=>{});}function extractMedia(msg){if(msg.photo?.length){return{method:"sendPhoto",field:"photo",fileId:msg.photo[msg.photo.length-1].file_id,label:"fotoğraf",};}if(msg.video?.file_id){return{method:"sendVideo",field:"video",fileId:msg.video.file_id,label:"video",};}if(msg.animation?.file_id){return{method:"sendAnimation",field:"animation",fileId:msg.animation.file_id,label:"GIF",};}return null;}function mediaKind(msg){return msg.photo?"fotoğraf":msg.video?"video":msg.animation?"GIF":"desteklenmeyen medya";}async function sendMedia(chatId,media,caption,extra={}){return tg(media.method,{chat_id:chatId,[media.field]:media.fileId,caption,...extra,});}function keyboard(inline_keyboard){return{reply_markup:{inline_keyboard}};}function btn(text,callback_data){return{text,callback_data};}function urlBtn(text,url){return{text,url};}function hasMediaPayload(msg){return Boolean(msg.photo||msg.video||msg.animation||msg.document||msg.audio||msg.voice||msg.video_note||msg.sticker,);}function hasBlockedContact(text){return/(https?:\/\/|www\.|t\.me\/|telegram\.me\/|@\w{3,}|(?:\+?\d[\d\s().-]{7,}\d))/i.test(text);}function ok(){return new Response("ok",{status:200});}function userKey(groupId,userId){return`${groupId}:${userId}`;}function nowIso(){return new Date().toISOString();}function dayKey(){return new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",}).format(new Date());}function addDaysIso(days){const d=new Date();d.setUTCDate(d.getUTCDate()+days);return d.toISOString();}function addHoursIso(hours){const d=new Date();d.setUTCHours(d.getUTCHours()+hours);return d.toISOString();}function formatLastSeen(value){if(!value)return"bilinmiyor";const date=new Date(value);if(Number.isNaN(date.getTime()))return"yakinda";const diffMs=Date.now()-date.getTime();const dayMs=24*60*60*1000;if(diffMs<dayMs)return"bugün";if(diffMs<2*dayMs)return"dun";if(diffMs<7*dayMs)return"son 7 gün içinde";return new Intl.DateTimeFormat("tr-TR",{timeZone:TZ,day:"numeric",month:"long",}).format(date);}function clean(text,max){return text.trim().replace(/\s+/g," ").slice(0,max);}function displayName(u){return clean(`${u.first_name ?? u.firstName ?? ""} ${u.last_name ?? u.lastName ?? ""}`.trim()||"İsimsiz",40,);}function defaultBioForUser(userId){const bios=["Telegram'da sohbet etmeyi severim.","Yeni insanlarla tanismayi severim.","Guzel sohbet her zaman iyidir.","Muzik, kahve ve samimi muhabbet.","Burada yeni insanlari kesfetmek icin varim.","Iyi enerji ve keyifli sohbet ariyorum.","Kisa bir selam bazen guzel seyler baslatir.","Sohbeti guzel insanlari severim.","Yeni arkadasliklar ve guzel muhabbetler.","Bazen en guzel tanismalar tesadufen olur.",];return bios[Math.abs(Number(userId||0))%bios.length];}function labelGender(g){if(g==="female")return"Kadın";if(g==="male")return"Erkek";if(g==="any")return"Farketmez";return"eklenmedi";}function isPrivilegedUser(userId){return Boolean(userId&&(userId===OWNER_ID||userId===ADMIN_ID));}async function requireAdminFromQuery(admin){if(!ADMIN_ID||Number(admin)!==ADMIN_ID)throw new Error("Yetki yok");}
